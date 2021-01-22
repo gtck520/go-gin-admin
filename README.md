@@ -15,3 +15,6 @@
 ├── runtime     应用运行数据<br>
 ├── service      业务逻辑层<br>
 ├── vue-admin Vue前端页面代码<br>
+### 基于go module使用
+go env -w GO111MODULE=on   
+go env -w GOPROXY=https://goproxy.cn,direct
