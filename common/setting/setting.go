@@ -15,8 +15,8 @@ var (
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 
-	PageSize  int
-	JwtSecret string
+	Database map[string]string
+	App map[string]interface{}
 )
 
 func init() {
@@ -29,6 +29,7 @@ func init() {
 	LoadBase()
 	LoadServer()
 	LoadApp()
+	LoadDatabase()
 }
 
 // LoadBase 加载基础配置
@@ -54,7 +55,26 @@ func LoadApp() {
 	if err != nil {
 		log.Fatalf("Fail to get section 'app': %v", err)
 	}
+	App = make(map[string]interface{})
+	App["JwtSecret"] = sec.Key("JWT_SECRET").MustString("!@)*#)!@U#@*!@!)")
+	App["PageSize"] = sec.Key("PAGE_SIZE").MustInt(10)
+	App["LogPath"] = sec.Key("LOG_PATH").MustString("../runtime/debug.log")
+	App["IdentityKey"] = sec.Key("IDENTITY_KEY").MustString("idname")
+}
 
-	JwtSecret = sec.Key("JWT_SECRET").MustString("!@)*#)!@U#@*!@!)")
-	PageSize = sec.Key("PAGE_SIZE").MustInt(10)
+// LoadDatabase 加载数据库配置
+func LoadDatabase() {
+	sec, err := Cfg.GetSection("database")
+	if err != nil {
+		log.Fatalf("Fail to get section 'app': %v", err)
+	}
+
+	Database = make(map[string]string)
+	Database["Type"] = sec.Key("TYPE").MustString("mysql")
+	Database["User"] = sec.Key("USER").MustString("root")
+	Database["Password"] = sec.Key("PASSWORD").MustString("123456")
+	Database["Host"] = sec.Key("HOST").MustString("127.0.0.1")
+	Database["Port"] = sec.Key("PORT").MustString("3306")
+	Database["Name"] = sec.Key("NAME").MustString("ckgo")
+	Database["Prefix"] = sec.Key("TABLE_PREFIX").MustString("go_")
 }
