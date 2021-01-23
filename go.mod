@@ -3,8 +3,9 @@ module github.com/konger/ckgo
 go 1.15
 
 require (
+	github.com/EDDYCJY/go-gin-example v0.0.0-20201228125222-28f372bf41f9
 	github.com/gin-gonic/gin v1.6.3
-	github.com/go-ini/ini v1.62.0 // indirect
+	github.com/go-ini/ini v1.62.0
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/jinzhu/gorm v1.9.16 // indirect
@@ -23,13 +24,14 @@ require (
 replace (
 	github.com/konger/ckgo/cmd => ./cmd
 	github.com/konger/ckgo/common => ./common
+	github.com/konger/ckgo/common/setting => ./common/setting
 	github.com/konger/ckgo/config => ./config
 	github.com/konger/ckgo/controller => ./controller
 	github.com/konger/ckgo/docs => ./docs
 	github.com/konger/ckgo/models => ./models
 	github.com/konger/ckgo/page => ./page
 	github.com/konger/ckgo/repository => ./repository
-	github.com/konger/ckgo/router => ./router
+	github.com/konger/ckgo/routers => ./routers
 	github.com/konger/ckgo/runtime => ./runtime
 	github.com/konger/ckgo/service => ./service
 )
