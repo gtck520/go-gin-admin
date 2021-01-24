@@ -9,11 +9,12 @@ import (
 	"github.com/konger/ckgo/common/datasource"
 	"github.com/konger/ckgo/common/logger"
 	"github.com/konger/ckgo/common/middleware/cors"
-	"github.com/konger/ckgo/common/middleware/jwt"
+	"github.com/konger/ckgo/common/middleware/privilege"
 	"github.com/konger/ckgo/common/setting"
-	"github.com/konger/ckgo/controller/v1/admin"
+	//"github.com/konger/ckgo/controller/v1/admin"
 	"github.com/konger/ckgo/repository"
 	"github.com/konger/ckgo/service"
+	"net/http"
 )
 
 //InitRouter 初始化Router
@@ -30,27 +31,24 @@ func InitRouter() *gin.Engine {
 //Configure 配置router
 func Configure(r *gin.Engine) {
 	//controller declare
-	var user admin.User
-	//var tag cv1.Tag
-	var myjwt jwt.JWT
+	//var user admin.User
 	//inject declare
-	var article admin.Article
+	//var article admin.Article
 	db := datasource.Db{}
 	zap := logger.Logger{}
 	//Injection
 	var injector inject.Graph
 	if err := injector.Provide(
-		&inject.Object{Value: &article},
+		//&inject.Object{Value: &article},
 		&inject.Object{Value: &db},
 		&inject.Object{Value: &zap},
 		&inject.Object{Value: &repository.ArticleRepository{}},
 		&inject.Object{Value: &service.ArticleService{}},
-		&inject.Object{Value: &user},
+		//&inject.Object{Value: &user},
 		&inject.Object{Value: &repository.UserRepository{}},
 		&inject.Object{Value: &service.UserService{}},
 		&inject.Object{Value: &repository.RoleRepository{}},
 		&inject.Object{Value: &service.RoleService{}},
-		&inject.Object{Value: &myjwt},
 		&inject.Object{Value: &repository.BaseRepository{}},
 	); err != nil {
 		log.Fatal("inject fatal: ", err)
@@ -66,37 +64,31 @@ func Configure(r *gin.Engine) {
 	}
 	//初始化数据库
 	datasource.Migration()
-	var authMiddleware = myjwt.GinJWTMiddlewareInit(&jwt.AllUserAuthorizator{})
-	r.NoRoute(authMiddleware.MiddlewareFunc(), jwt.NoRouteHandler)
-	r.POST("/login", authMiddleware.LoginHandler)
-	userAPI := r.Group("/api/v1/user")
-	{
-		// 不需要鉴权走这里
-		userAPI.GET("/refresh_token", authMiddleware.RefreshHandler)
-	}
-	userAPI.Use(authMiddleware.MiddlewareFunc())
-	{
-		//鉴权通过才可以访问走这里
-		userAPI.GET("/table/list", article.GetTables)
-		userAPI.GET("/info", user.GetUserInfo)
-		userAPI.POST("/logout", user.Logout)
-	}
+	//首页
+	r.GET("/", func(c *gin.Context) { c.HTML(http.StatusOK, "index.html", nil) })
+	apiPrefix:="/v1/adapi"
+	g := r.Group(apiPrefix)
+	// 登录验证 jwt token 验证 及信息提取
+	var notCheckLoginUrlArr []string
+	notCheckLoginUrlArr = append(notCheckLoginUrlArr, apiPrefix+"/user/login")
+	notCheckLoginUrlArr = append(notCheckLoginUrlArr, apiPrefix+"/user/logout")
+	g.Use(privilege.UserAuthMiddleware(
+		privilege.AllowPathPrefixSkipper(notCheckLoginUrlArr...),
+	))
+	// 权限验证
+	var notCheckPermissionUrlArr []string
+	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, notCheckLoginUrlArr...)
+	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/menu/menubuttonlist")
+	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/menu/allmenu")
+	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/admins/adminsroleidlist")
+	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/user/info")
+	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/user/editpwd")
+	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/role/rolemenuidlist")
+	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/role/allrole")
+	g.Use(privilege.CasbinMiddleware(
+		privilege.AllowPathPrefixSkipper(notCheckPermissionUrlArr...),
+	))
+	//sys
+	RegisterRouterSys(g)
 
-	var adminMiddleware = myjwt.GinJWTMiddlewareInit(&jwt.AdminAuthorizator{})
-	adminv1 := r.Group("/admin/v1")
-	//使用AdminAuthorizator中间件，只有admin权限的用户才能获取到接口
-	adminv1.Use(adminMiddleware.MiddlewareFunc())
-	{
-		//vue获取table信息
-		//apiv1.GET("/table/list", article.GetTables)
-		adminv1.GET("/user/list", user.GetUsers)
-		adminv1.POST("/user", user.AddUser)
-		adminv1.PUT("/user", user.UpdateUser)
-		adminv1.DELETE("/user/:id", user.DeleteUser)
-		adminv1.GET("/article/list", article.GetArticles)
-		adminv1.GET("/article/detail/:id", article.GetArticle)
-		adminv1.POST("/article", article.AddArticle)
-		// apiv1.PUT("/articles/:id", article.EditArticle)
-		// apiv1.DELETE("/articles/:id", article.DeleteArticle)
-	}
 }
