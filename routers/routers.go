@@ -64,34 +64,38 @@ func Configure(r *gin.Engine) {
 	if err := db.Connect(); err != nil {
 		log.Fatal("db fatal:", err)
 	}
+	//初始化数据库
+	datasource.Migration()
 	var authMiddleware = myjwt.GinJWTMiddlewareInit(&jwt.AllUserAuthorizator{})
 	r.NoRoute(authMiddleware.MiddlewareFunc(), jwt.NoRouteHandler)
 	r.POST("/login", authMiddleware.LoginHandler)
-	userAPI := r.Group("/user")
+	userAPI := r.Group("/api/v1/user")
 	{
+		// 不需要鉴权走这里
 		userAPI.GET("/refresh_token", authMiddleware.RefreshHandler)
 	}
 	userAPI.Use(authMiddleware.MiddlewareFunc())
 	{
+		//鉴权通过才可以访问走这里
 		userAPI.GET("/table/list", article.GetTables)
 		userAPI.GET("/info", user.GetUserInfo)
 		userAPI.POST("/logout", user.Logout)
 	}
 
 	var adminMiddleware = myjwt.GinJWTMiddlewareInit(&jwt.AdminAuthorizator{})
-	apiv1 := r.Group("/admin/v1")
+	adminv1 := r.Group("/admin/v1")
 	//使用AdminAuthorizator中间件，只有admin权限的用户才能获取到接口
-	apiv1.Use(adminMiddleware.MiddlewareFunc())
+	adminv1.Use(adminMiddleware.MiddlewareFunc())
 	{
 		//vue获取table信息
 		//apiv1.GET("/table/list", article.GetTables)
-		apiv1.GET("/user/list", user.GetUsers)
-		apiv1.POST("/user", user.AddUser)
-		apiv1.PUT("/user", user.UpdateUser)
-		apiv1.DELETE("/user/:id", user.DeleteUser)
-		apiv1.GET("/article/list", article.GetArticles)
-		apiv1.GET("/article/detail/:id", article.GetArticle)
-		apiv1.POST("/article", article.AddArticle)
+		adminv1.GET("/user/list", user.GetUsers)
+		adminv1.POST("/user", user.AddUser)
+		adminv1.PUT("/user", user.UpdateUser)
+		adminv1.DELETE("/user/:id", user.DeleteUser)
+		adminv1.GET("/article/list", article.GetArticles)
+		adminv1.GET("/article/detail/:id", article.GetArticle)
+		adminv1.POST("/article", article.AddArticle)
 		// apiv1.PUT("/articles/:id", article.EditArticle)
 		// apiv1.DELETE("/articles/:id", article.DeleteArticle)
 	}

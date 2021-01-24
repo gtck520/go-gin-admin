@@ -7,6 +7,7 @@ import (
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/konger/ckgo/common/codes"
 	"github.com/konger/ckgo/common/logger"
+	"github.com/konger/ckgo/common/util/response"
 	"github.com/konger/ckgo/models"
 	"github.com/konger/ckgo/page"
 	"github.com/konger/ckgo/service"
@@ -34,12 +35,12 @@ func (a *User) GetUserInfo(c *gin.Context) {
 	code := codes.SUCCESS
 	userRoles := a.Service.GetRoles(userName)
 	data := page.User{Roles: userRoles, Introduction: "", Avatar: *avatar, Name: userName}
-	RespData(c, http.StatusOK, code, &data)
+	response.RespData(c, http.StatusOK, code, &data)
 }
 
 //Logout 退出登录
 func (a *User) Logout(c *gin.Context) {
-	RespOk(c, http.StatusOK, codes.SUCCESS)
+	response.RespOk(c, http.StatusOK, codes.SUCCESS)
 }
 
 //GetUsers 获取用户信息
@@ -50,9 +51,9 @@ func (a *User) GetUsers(c *gin.Context) {
 	if name != "" {
 		maps = "username LIKE '%" + name + "%'"
 	}
-	page, pagesize := GetPage(c)
+	page, pagesize := response.GetPage(c)
 	data := a.Service.GetUsers(page, pagesize, maps)
-	RespData(c, http.StatusOK, code, data)
+	response.RespData(c, http.StatusOK, code, data)
 }
 
 //AddUser 新建用户
@@ -79,7 +80,7 @@ func (a *User) AddUser(c *gin.Context) {
 		}
 	}
 
-	RespOk(c, http.StatusOK, code)
+	response.RespOk(c, http.StatusOK, code)
 }
 
 //UpdateUser 修改用户
@@ -99,7 +100,7 @@ func (a *User) UpdateUser(c *gin.Context) {
 			code = codes.ERROR
 		}
 	}
-	RespOk(c, http.StatusOK, code)
+	response.RespOk(c, http.StatusOK, code)
 }
 
 //DeleteUser 删除用户
@@ -108,8 +109,8 @@ func (a *User) DeleteUser(c *gin.Context) {
 	code := codes.SUCCESS
 	if !a.Service.DeleteUser(id) {
 		code = codes.ERROR
-		RespFail(c, http.StatusOK, code, "不允许删除admin账号!")
+		response.RespFail(c, http.StatusOK, code, "不允许删除admin账号!")
 	} else {
-		RespOk(c, http.StatusOK, code)
+		response.RespOk(c, http.StatusOK, code)
 	}
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/konger/ckgo/common/codes"
 	"github.com/konger/ckgo/common/logger"
+	"github.com/konger/ckgo/common/util/response"
 	"github.com/konger/ckgo/models"
 	"github.com/konger/ckgo/service"
 )
@@ -34,15 +35,15 @@ func (a *Article) GetArticle(c *gin.Context) {
 			a.Log.Info("err.key: %s, err.message: %s", err.Key, err.Message)
 		}
 	}
-	RespData(c, http.StatusOK, code, data)
+	response.RespData(c, http.StatusOK, code, data)
 }
 
 //GetTables 获取多个文章
 func (a *Article) GetTables(c *gin.Context) {
 	code := codes.SUCCESS
-	page, pagesize := GetPage(c)
+	page, pagesize := response.GetPage(c)
 	data := a.Service.GetTables(page, pagesize)
-	RespData(c, http.StatusOK, code, data)
+	response.RespData(c, http.StatusOK, code, data)
 }
 
 //AddArticle 新增文章
@@ -60,7 +61,7 @@ func (a *Article) AddArticle(c *gin.Context) {
 			code = codes.ERROR
 		}
 	}
-	RespOk(c, http.StatusOK, code)
+	response.RespOk(c, http.StatusOK, code)
 }
 
 //GetArticles 获取文章信息
@@ -68,11 +69,11 @@ func (a *Article) GetArticles(c *gin.Context) {
 	res := make(map[string]interface{}, 2)
 	var total uint64
 	code := codes.SUCCESS
-	page, pagesize := GetPage(c)
+	page, pagesize := response.GetPage(c)
 	articles := a.Service.GetArticles(page, pagesize, &total, "")
 	res["list"] = articles
 	res["total"] = total
-	RespData(c, http.StatusOK, code, &res)
+	response.RespData(c, http.StatusOK, code, &res)
 }
 
 // //EditArticle 修改文章

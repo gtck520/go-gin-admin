@@ -5,6 +5,8 @@ import (
 	"log"
 
 	"github.com/konger/ckgo/common/setting"
+	"github.com/konger/ckgo/models/sys"
+	"github.com/konger/ckgo/models/db"
 	"github.com/jinzhu/gorm"
 
 	//
@@ -29,7 +31,7 @@ func (d *Db) Connect() error {
 	pwd = conf["Password"]
 	host = conf["Host"] + ":" + conf["Port"]
 
-	db, err := gorm.Open(dbType, fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local", user, pwd, host, dbName))
+	gdb, err := gorm.Open(dbType, fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local", user, pwd, host, dbName))
 	if err != nil {
 		log.Fatal("connecting mysql error: ", err)
 		return err
@@ -37,12 +39,13 @@ func (d *Db) Connect() error {
 	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
 		return conf["Prefix"] + defaultTableName
 	}
-	db.LogMode(true) //打印SQL语句
-	db.SingularTable(true)
-	db.DB().SetMaxIdleConns(10)
-	db.DB().SetMaxOpenConns(100)
+	gdb.LogMode(true) //打印SQL语句
+	gdb.SingularTable(true)
+	gdb.DB().SetMaxIdleConns(10)
+	gdb.DB().SetMaxOpenConns(100)
 
-	d.Conn = db
+	d.Conn = gdb
+	db.DB=gdb
 
 	log.Println("Connect Mysql Success")
 
@@ -53,3 +56,11 @@ func (d *Db) Connect() error {
 func (d *Db) DB() *gorm.DB {
 	return d.Conn
 }
+func Migration() {
+	fmt.Println(db.DB.AutoMigrate(new(sys.Menu)).Error)
+	fmt.Println(db.DB.AutoMigrate(new(sys.Admins)).Error)
+	fmt.Println(db.DB.AutoMigrate(new(sys.RoleMenu)).Error)
+	fmt.Println(db.DB.AutoMigrate(new(sys.Role)).Error)
+	fmt.Println(db.DB.AutoMigrate(new(sys.AdminsRole)).Error)
+}
+
