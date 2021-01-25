@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/konger/ckgo/common/setting"
+	"github.com/konger/ckgo/common/logger"
 	"github.com/konger/ckgo/models/sys"
 	"github.com/konger/ckgo/models/db"
 	"github.com/jinzhu/gorm"
@@ -37,10 +38,12 @@ func (d *Db) Connect() error {
 		return err
 	}
 	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
-		return conf["Prefix"] + defaultTableName
+		//return conf["Prefix"] + defaultTableName
+		return  defaultTableName
 	}
 	gdb.LogMode(true) //打印SQL语句
 	gdb.SingularTable(true)
+	gdb.SetLogger(logger.SqlLogger())
 	gdb.DB().SetMaxIdleConns(10)
 	gdb.DB().SetMaxOpenConns(100)
 

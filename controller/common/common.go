@@ -75,7 +75,7 @@ type ResponsePage struct {
 
 // 响应成功-分页数据
 func ResSuccessPage(c *gin.Context, total uint64, list interface{}) {
-	ret := ResponsePage{Code: codes.ERROR, Message: "ok", Data: ResponsePageData{Total: total, Items: list}}
+	ret := ResponsePage{Code: codes.SUCCESS, Message: "ok", Data: ResponsePageData{Total: total, Items: list}}
 	ResJSON(c, http.StatusOK, &ret)
 }
 
