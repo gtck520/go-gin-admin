@@ -1,17 +1,26 @@
 package sys
 
 import (
+	"os"
+
 	"github.com/konger/ckgo/controller/common"
 	models "github.com/konger/ckgo/models/common"
 	"github.com/konger/ckgo/models/sys"
 
 	"github.com/gin-gonic/gin"
+	"github.com/konger/ckgo/common/logger"
 )
 
 type Role struct{}
 
 // 分页数据
 func (Role) List(c *gin.Context) {
+	defer func() {
+		if e := recover(); e != nil {
+			logger.PrintStack()
+			os.Exit(1)
+		}
+	}()
 	page := common.GetPageIndex(c)
 	limit := common.GetPageLimit(c)
 	sort := common.GetPageSort(c)
@@ -41,7 +50,7 @@ func (Role) List(c *gin.Context) {
 		whereOrder = append(whereOrder, models.PageWhereOrder{Where: "parent_id = ?", Value: arr})
 	}
 	var total uint64
-	list:= []sys.Role{}
+	list := []sys.Role{}
 	err := models.GetPage(&sys.Role{}, &sys.Role{}, &list, page, limit, &total, whereOrder...)
 	if err != nil {
 		common.ResErrSrv(c, err)
@@ -104,8 +113,8 @@ func (Role) Delete(c *gin.Context) {
 		common.ResErrSrv(c, err)
 		return
 	}
-	role:=sys.Role{}
-  err = role.Delete(ids)
+	role := sys.Role{}
+	err = role.Delete(ids)
 	if err != nil {
 		common.ResErrSrv(c, err)
 		return

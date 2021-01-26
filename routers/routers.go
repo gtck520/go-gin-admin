@@ -11,18 +11,21 @@ import (
 	"github.com/konger/ckgo/common/middleware/cors"
 	"github.com/konger/ckgo/common/middleware/privilege"
 	"github.com/konger/ckgo/common/setting"
+
 	//"github.com/konger/ckgo/controller/v1/admin"
-	"github.com/konger/ckgo/repository"
-	"github.com/konger/ckgo/service"
 	"net/http"
 )
 
 //InitRouter 初始化Router
 func InitRouter() *gin.Engine {
 	r := gin.New()
-	r.Use(gin.Logger())
+
+	if err := logger.InitLogger(); err != nil {
+		log.Fatal("init logger failed:", err)
+	}
+	r.Use(logger.GinLogger())
 	r.Use(cors.CorsHandler())
-	r.Use(gin.Recovery())
+	r.Use(logger.GinRecovery(true))
 	gin.SetMode(setting.RunMode)
 	Configure(r)
 	return r
@@ -35,29 +38,25 @@ func Configure(r *gin.Engine) {
 	//inject declare
 	//var article admin.Article
 	db := datasource.Db{}
-	zap := logger.Logger{}
 	//Injection
 	var injector inject.Graph
 	if err := injector.Provide(
 		//&inject.Object{Value: &article},
 		&inject.Object{Value: &db},
-		&inject.Object{Value: &zap},
-		&inject.Object{Value: &repository.ArticleRepository{}},
-		&inject.Object{Value: &service.ArticleService{}},
+		//&inject.Object{Value: &repository.ArticleRepository{}},
+		//&inject.Object{Value: &service.ArticleService{}},
 		//&inject.Object{Value: &user},
-		&inject.Object{Value: &repository.UserRepository{}},
-		&inject.Object{Value: &service.UserService{}},
-		&inject.Object{Value: &repository.RoleRepository{}},
-		&inject.Object{Value: &service.RoleService{}},
-		&inject.Object{Value: &repository.BaseRepository{}},
+		// &inject.Object{Value: &repository.UserRepository{}},
+		// &inject.Object{Value: &service.UserService{}},
+		// &inject.Object{Value: &repository.RoleRepository{}},
+		// &inject.Object{Value: &service.RoleService{}},
+		// &inject.Object{Value: &repository.BaseRepository{}},
 	); err != nil {
 		log.Fatal("inject fatal: ", err)
 	}
 	if err := injector.Populate(); err != nil {
 		log.Fatal("injector fatal: ", err)
 	}
-	//zap log init
-	zap.Init()
 	//database connect
 	if err := db.Connect(); err != nil {
 		log.Fatal("db fatal:", err)
@@ -66,27 +65,27 @@ func Configure(r *gin.Engine) {
 	datasource.Migration()
 	//首页
 	r.GET("/", func(c *gin.Context) { c.HTML(http.StatusOK, "index.html", nil) })
-	apiPrefix:="/v1/adapi"
+	apiPrefix := "/v1/adapi"
 	g := r.Group(apiPrefix)
 	// 登录验证 jwt token 验证 及信息提取
-	var notCheckLoginUrlArr []string
-	notCheckLoginUrlArr = append(notCheckLoginUrlArr, apiPrefix+"/user/login")
-	notCheckLoginUrlArr = append(notCheckLoginUrlArr, apiPrefix+"/user/logout")
+	var notCheckLoginURLArr []string
+	notCheckLoginURLArr = append(notCheckLoginURLArr, apiPrefix+"/user/login")
+	notCheckLoginURLArr = append(notCheckLoginURLArr, apiPrefix+"/user/logout")
 	g.Use(privilege.UserAuthMiddleware(
-		privilege.AllowPathPrefixSkipper(notCheckLoginUrlArr...),
+		privilege.AllowPathPrefixSkipper(notCheckLoginURLArr...),
 	))
 	// 权限验证
-	var notCheckPermissionUrlArr []string
-	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, notCheckLoginUrlArr...)
-	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/menu/menubuttonlist")
-	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/menu/allmenu")
-	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/admins/adminsroleidlist")
-	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/user/info")
-	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/user/editpwd")
-	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/role/rolemenuidlist")
-	notCheckPermissionUrlArr = append(notCheckPermissionUrlArr, apiPrefix+"/role/allrole")
+	var notCheckPermissionURLArr []string
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, notCheckLoginURLArr...)
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/menu/menubuttonlist")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/menu/allmenu")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/admins/adminsroleidlist")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/user/info")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/user/editpwd")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/role/rolemenuidlist")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/role/allrole")
 	g.Use(privilege.CasbinMiddleware(
-		privilege.AllowPathPrefixSkipper(notCheckPermissionUrlArr...),
+		privilege.AllowPathPrefixSkipper(notCheckPermissionURLArr...),
 	))
 	//sys
 	RegisterRouterSys(g)

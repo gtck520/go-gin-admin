@@ -7,7 +7,7 @@ type ILogger interface {
 	//Info 打印信息
 	Info(args ...interface{})
 	//Infof 打印信息，附带template信息
-	Infof(template string, args ...interface{})
+	Infof(template string, args ...interface{})ILogger
 	//Warn 打印警告
 	Warn(args ...interface{})
 	//Warnf 打印警告，附带template信息

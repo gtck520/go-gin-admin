@@ -16,7 +16,7 @@ var (
 	WriteTimeout time.Duration
 
 	Database map[string]string
-	App map[string]interface{}
+	App      map[string]interface{}
 )
 
 func init() {
@@ -58,8 +58,12 @@ func LoadApp() {
 	App = make(map[string]interface{})
 	App["JwtSecret"] = sec.Key("JWT_SECRET").MustString("!@)*#)!@U#@*!@!)")
 	App["PageSize"] = sec.Key("PAGE_SIZE").MustInt(10)
-	App["LogPath"] = sec.Key("LOG_PATH").MustString("../runtime/debug.log")
 	App["IdentityKey"] = sec.Key("IDENTITY_KEY").MustString("idname")
+	App["LogPath"] = sec.Key("LOG_PATH").MustString("../runtime/debug.log")
+	App["MaxSize"] = sec.Key("MaxSize").MustInt(200)
+	App["MaxBackups"] = sec.Key("MaxBackups").MustInt(10)
+	App["MaxAge"] = sec.Key("MaxAge").MustInt(7)
+	App["Level"] = sec.Key("Level").MustString("debug")
 }
 
 // LoadDatabase 加载数据库配置
