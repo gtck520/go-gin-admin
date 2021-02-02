@@ -5,12 +5,17 @@ import (
 	"time"
 
 	"github.com/go-ini/ini"
+	"os/exec"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 var (
 	Cfg     *ini.File
 	RunMode string
-
+	WorkPath string
+	RunPath string
 	HTTPPort     int
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
@@ -21,11 +26,22 @@ var (
 
 func init() {
 	var err error
-	Cfg, err = ini.Load("../config/env.ini")
+	if WorkPath, err = filepath.Abs(filepath.Dir(os.Args[0])); err != nil {
+		panic(err)
+	}
+	RunPath, err = os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	var filename = "env.ini"
+	if os.Getenv("CKGO_WORK_DIR") != "" {
+		filename = os.Getenv("CKGO_WORK_DIR") + "config/env.ini"
+	}
+	Cfg, err = ini.Load(filepath.Join(RunPath, "config",filename))
 	if err != nil {
 		log.Fatalf("Fail to parse 'config/env.ini': %v", err)
 	}
-
+	WorkPath = Cfg.Section("config").Key("ROOT_PATH").MustString(filepath.Join(WorkDir(), ""))
 	LoadBase()
 	LoadServer()
 	LoadApp()
@@ -81,4 +97,11 @@ func LoadDatabase() {
 	Database["Port"] = sec.Key("PORT").MustString("3306")
 	Database["Name"] = sec.Key("NAME").MustString("ckgo")
 	Database["Prefix"] = sec.Key("TABLE_PREFIX").MustString("go_")
+}
+func GetAppPath() string {
+	file, _ := exec.LookPath(os.Args[0])
+	path, _ := filepath.Abs(file)
+	index := strings.LastIndex(path, string(os.PathSeparator))
+
+	return path[:index]
 }

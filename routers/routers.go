@@ -12,6 +12,7 @@ import (
 	"github.com/konger/ckgo/common/middleware/privilege"
 	"github.com/konger/ckgo/common/setting"
 
+
 	//"github.com/konger/ckgo/controller/v1/admin"
 	"net/http"
 )
@@ -19,13 +20,12 @@ import (
 //InitRouter 初始化Router
 func InitRouter() *gin.Engine {
 	r := gin.New()
-
 	if err := logger.InitLogger(); err != nil {
 		log.Fatal("init logger failed:", err)
 	}
 	r.Use(logger.GinLogger())
-	r.Use(cors.CorsHandler())
 	r.Use(logger.GinRecovery(true))
+	r.Use(cors.CorsHandler())
 	gin.SetMode(setting.RunMode)
 	Configure(r)
 	return r

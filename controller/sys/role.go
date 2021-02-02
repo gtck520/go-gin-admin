@@ -1,26 +1,17 @@
 package sys
 
 import (
-	"os"
-
 	"github.com/konger/ckgo/controller/common"
 	models "github.com/konger/ckgo/models/common"
 	"github.com/konger/ckgo/models/sys"
 
 	"github.com/gin-gonic/gin"
-	"github.com/konger/ckgo/common/logger"
 )
 
 type Role struct{}
 
 // 分页数据
 func (Role) List(c *gin.Context) {
-	defer func() {
-		if e := recover(); e != nil {
-			logger.PrintStack()
-			os.Exit(1)
-		}
-	}()
 	page := common.GetPageIndex(c)
 	limit := common.GetPageLimit(c)
 	sort := common.GetPageSort(c)
