@@ -67,6 +67,8 @@ func Configure(r *gin.Engine) {
 	common.InitCsbinEnforcer()
 	//首页
 	r.GET("/", func(c *gin.Context) { c.HTML(http.StatusOK, "index.html", nil) })
+	//加载静态资源
+	r.StaticFS("/resource", http.Dir("./resource"))
 	apiPrefix := "/v1/adapi"
 	g := r.Group(apiPrefix)
 	// 登录验证 jwt token 验证 及信息提取
