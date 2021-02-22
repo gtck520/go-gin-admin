@@ -20,7 +20,6 @@ func (Menu) List(c *gin.Context) {
 	key := common.GetPageKey(c)
 	menuType := common.GetQueryToUint(c, "type")
 	parent_id := common.GetQueryToUint64(c, "parent_id")
-	common.ResFail(c,"wrongg")
 	var whereOrder []models.PageWhereOrder
 	order := "ID DESC"
 	if len(sort) >= 2 {

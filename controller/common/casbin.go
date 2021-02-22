@@ -93,7 +93,7 @@ func setRolePermission(enforcer *casbin.Enforcer, roleid uint64) {
 			return
 		}
 		if menu.MenuType == 3 {
-			enforcer.AddPermissionForUser(PrefixRoleID+convert.ToString(roleid), "/api"+menu.URL, "GET|POST")
+			enforcer.AddPermissionForUser(PrefixRoleID+convert.ToString(roleid), "/v1/adapi"+menu.URL, "GET|POST")
 		}
 	}
 }

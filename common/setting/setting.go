@@ -34,10 +34,11 @@ func init() {
 		panic(err)
 	}
 	var filename = "env.ini"
+	filename = filepath.Join(RunPath, "config",filename)
 	if os.Getenv("CKGO_WORK_DIR") != "" {
-		filename = os.Getenv("CKGO_WORK_DIR") + "config/env.ini"
+		filename = os.Getenv("CKGO_WORK_DIR") + "/config/env.ini"
 	}
-	Cfg, err = ini.Load(filepath.Join(RunPath, "config",filename))
+	Cfg, err = ini.Load(filename)
 	if err != nil {
 		log.Fatalf("Fail to parse 'config/env.ini': %v", err)
 	}

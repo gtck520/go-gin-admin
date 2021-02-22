@@ -5,7 +5,7 @@ import (
 
 	"github.com/facebookgo/inject"
 	"github.com/gin-gonic/gin"
-
+	"github.com/konger/ckgo/controller/common"
 	"github.com/konger/ckgo/common/datasource"
 	"github.com/konger/ckgo/common/logger"
 	"github.com/konger/ckgo/common/middleware/cors"
@@ -63,6 +63,8 @@ func Configure(r *gin.Engine) {
 	}
 	//初始化数据库
 	datasource.Migration()
+	//初始化casbin
+	common.InitCsbinEnforcer()
 	//首页
 	r.GET("/", func(c *gin.Context) { c.HTML(http.StatusOK, "index.html", nil) })
 	apiPrefix := "/v1/adapi"

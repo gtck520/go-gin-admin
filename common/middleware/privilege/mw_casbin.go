@@ -29,6 +29,7 @@ func CasbinMiddleware(skipper ...SkipperFunc) gin.HandlerFunc {
 		}
 		p := c.Request.URL.Path
 		m := c.Request.Method
+
 		if b, err := common.CsbinCheckPermission(convert.ToString(uid), p, m); err != nil {
 			common.ResFail(c, "err303"+err.Error())
 			fmt.Println("err303**", err)

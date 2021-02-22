@@ -270,7 +270,7 @@ func (User) Info(c *gin.Context) {
 		menus = getSuperAdminMenu()
 	}
 	resData := UserData{Menus: menus, Name: "小王"}
-	resData.Avatar = "http://127.0.0.1:8080/resource/img/head_go.jpg"
+	resData.Avatar = "http://127.0.0.1:8000/resource/img/head_go.jpg"
 	common.ResSuccess(c, &resData)
 }
 

@@ -42,6 +42,7 @@ func (Role) List(c *gin.Context) {
 	}
 	var total uint64
 	list := []sys.Role{}
+
 	err := models.GetPage(&sys.Role{}, &sys.Role{}, &list, page, limit, &total, whereOrder...)
 	if err != nil {
 		common.ResErrSrv(c, err)
