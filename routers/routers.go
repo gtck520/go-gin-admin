@@ -14,6 +14,7 @@ import (
 	"github.com/konger/ckgo/common/middleware/cors"
 	"github.com/konger/ckgo/common/middleware/privilege"
 	"github.com/konger/ckgo/common/setting"
+	"github.com/konger/ckgo/websocket"
 
 
 	//"github.com/konger/ckgo/controller/v1/admin"
@@ -36,6 +37,16 @@ func InitRouter() *gin.Engine {
 
 //Configure 配置router
 func Configure(r *gin.Engine) {
+	//启动websocket
+	go websocket.WebsocketManager.Start()
+	go websocket.WebsocketManager.SendService()
+	go websocket.WebsocketManager.SendService()
+	go websocket.WebsocketManager.SendGroupService()
+	go websocket.WebsocketManager.SendGroupService()
+	go websocket.WebsocketManager.SendAllService()
+	go websocket.WebsocketManager.SendAllService()
+	go websocket.TestSendGroup()
+	go websocket.TestSendAll()
 	//controller declare
 	//var user admin.User
 	//inject declare
@@ -74,8 +85,14 @@ func Configure(r *gin.Engine) {
 	r.StaticFS("/resource", http.Dir("./resource"))
 	//swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	apiPrefix := "/v1/adapi"
 	g := r.Group(apiPrefix)
+
+	wsGroup := r.Group("/ws")
+	{
+		wsGroup.GET("/:channel", websocket.WebsocketManager.WsClient)
+	}
 	// 登录验证 jwt token 验证 及信息提取
 	var notCheckLoginURLArr []string
 	notCheckLoginURLArr = append(notCheckLoginURLArr, apiPrefix+"/user/login")

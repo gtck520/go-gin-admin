@@ -23,9 +23,12 @@
 ├── runtime     应用运行数据<br>
 ├── service      业务逻辑层<br>
 ├── vue-admin Vue前端页面代码<br>
+├── websocket socket通讯服务<br>
 ### 基于go module使用
 go env -w GO111MODULE=on   
 go env -w GOPROXY=https://goproxy.cn,direct
 ### 基于 air 调试启动
 根目录 输入 air
-
+### swagger 文档查看
+项目根目录 输入 swag init 生成最新文档
+访问 http://127.0.0.1:8000/swagger/index.html
