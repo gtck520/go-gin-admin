@@ -3,6 +3,9 @@ package routers
 import (
 	"log"
 
+	_ "github.com/konger/ckgo/docs"
+	"github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"github.com/facebookgo/inject"
 	"github.com/gin-gonic/gin"
 	"github.com/konger/ckgo/controller/common"
@@ -69,6 +72,8 @@ func Configure(r *gin.Engine) {
 	r.GET("/", func(c *gin.Context) { c.HTML(http.StatusOK, "index.html", nil) })
 	//加载静态资源
 	r.StaticFS("/resource", http.Dir("./resource"))
+	//swagger
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	apiPrefix := "/v1/adapi"
 	g := r.Group(apiPrefix)
 	// 登录验证 jwt token 验证 及信息提取
