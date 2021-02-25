@@ -1,4 +1,4 @@
-package models
+package common
 
 //Role 身份信息结构体
 type Role struct {

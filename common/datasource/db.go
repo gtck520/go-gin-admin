@@ -8,6 +8,7 @@ import (
 	"github.com/konger/ckgo/common/logger"
 	"github.com/konger/ckgo/models/sys"
 	"github.com/konger/ckgo/models/db"
+	"github.com/konger/ckgo/models/common"
 	"github.com/jinzhu/gorm"
 
 	//
@@ -59,11 +60,13 @@ func (d *Db) Connect() error {
 func (d *Db) DB() *gorm.DB {
 	return d.Conn
 }
+//自动生成数据库
 func Migration() {
 	fmt.Println(db.DB.AutoMigrate(new(sys.Menu)).Error)
 	fmt.Println(db.DB.AutoMigrate(new(sys.Admins)).Error)
 	fmt.Println(db.DB.AutoMigrate(new(sys.RoleMenu)).Error)
 	fmt.Println(db.DB.AutoMigrate(new(sys.Role)).Error)
 	fmt.Println(db.DB.AutoMigrate(new(sys.AdminsRole)).Error)
+	fmt.Println(db.DB.AutoMigrate(new(common.User)).Error)
 }
 

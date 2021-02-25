@@ -1,4 +1,4 @@
-package common
+package function
 
 import(
 	"github.com/konger/ckgo/models/db"

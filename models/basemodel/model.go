@@ -13,7 +13,11 @@ type Model struct {
 	CreatedBy uint64    `gorm:"column:created_by;default:0;not null;" json:"created_by" form:"created_by"`     // 创建人
 	UpdatedBy uint64    `gorm:"column:updated_by;default:0;not null;" json:"updated_by" form:"updated_by"`     // 更新人
 }
-
+type NomalModel struct {
+	ID        uint64    `gorm:"column:id;primary_key;auto_increment;" json:"id" form:"id"`                     // 主键
+	CreateTime uint64 `gorm:"column:create_time;type:int;default:0;not null;" json:"create_time" form:"create_time"` // 创建时间
+	UpdateTime uint64 `gorm:"column:update_time;type:int;default:0;not null;" json:"update_time" form:"update_time"` // 更新时间
+}
 func GetTablePrefix() string {
 	return setting.Database["Prefix"]
 }

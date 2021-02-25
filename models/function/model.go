@@ -1,4 +1,4 @@
-package common
+package function
 
 // 分页条件
 type PageWhereOrder struct {

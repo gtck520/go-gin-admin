@@ -3,7 +3,7 @@ package sys
 import (
 	"github.com/konger/ckgo/common/codes"
 	"github.com/konger/ckgo/controller/common"
-	models "github.com/konger/ckgo/models/common"
+	models "github.com/konger/ckgo/models/function"
 	"github.com/konger/ckgo/models/sys"
 	"github.com/konger/ckgo/common/util/convert"
 
