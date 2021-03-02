@@ -19,16 +19,24 @@ import (
 
 	//"github.com/konger/ckgo/controller/v1/admin"
 	"net/http"
+	"os"
+	"io"
+	"path/filepath"
 )
 
 //InitRouter 初始化Router
 func InitRouter() *gin.Engine {
+	log_name := filepath.Join(setting.RunPath,"runtime","debug.log")
+	f, _ :=os.Create(log_name)
+	//gin.DefaultWriter=io.MultiWriter(f)
+	// 如果你需要同时写入日志文件和控制台上显示，使用下面代码
+	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 	r := gin.New()
-	if err := logger.InitLogger(); err != nil {
-		log.Fatal("init logger failed:", err)
-	}
-	r.Use(logger.GinLogger())
-	r.Use(logger.GinRecovery(true))
+	//if err := logger.InitLogger(); err != nil {
+	//	log.Fatal("init logger failed:", err)
+	//}
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
 	r.Use(cors.CorsHandler())
 	gin.SetMode(setting.RunMode)
 	Configure(r)
@@ -52,11 +60,13 @@ func Configure(r *gin.Engine) {
 	//inject declare
 	//var article admin.Article
 	db := datasource.Db{}
+	zap := logger.Logger{}
 	//Injection
 	var injector inject.Graph
 	if err := injector.Provide(
 		//&inject.Object{Value: &article},
 		&inject.Object{Value: &db},
+		&inject.Object{Value: &zap},
 		//&inject.Object{Value: &repository.ArticleRepository{}},
 		//&inject.Object{Value: &service.ArticleService{}},
 		//&inject.Object{Value: &user},
@@ -71,6 +81,9 @@ func Configure(r *gin.Engine) {
 	if err := injector.Populate(); err != nil {
 		log.Fatal("injector fatal: ", err)
 	}
+
+	//zap log init
+	zap.Init()
 	//database connect
 	if err := db.Connect(); err != nil {
 		log.Fatal("db fatal:", err)
