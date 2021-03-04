@@ -1,6 +1,6 @@
 package api
 
-import "github.com/konger/ckgo/models"
+import models "github.com/konger/ckgo/models/common"
 
 //IUserService UserService接口定义
 type IUserService interface {
@@ -17,7 +17,7 @@ type IUserService interface {
 	//ExistUserByName 判断用户名是否已存在
 	ExistUserByName(username string) bool
 	//UpdateUser 更新用户
-	UpdateUser(user *models.User) bool
+	//UpdateUser(user *models.User) bool
 	//DeleteUser 删除用户
 	DeleteUser(id int) bool
 }

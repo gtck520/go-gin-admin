@@ -1,6 +1,6 @@
 package repository
 
-import "github.com/konger/ckgo/models"
+import models "github.com/konger/ckgo/models/common"
 
 //IUserRepository User接口定义
 type IUserRepository interface {
@@ -17,7 +17,7 @@ type IUserRepository interface {
 	//ExistUserByName 判断用户名是否已存在
 	ExistUserByName(where interface{}) bool
 	//UpdateUser 更新用户
-	UpdateUser(user *models.User, role *models.Role) bool
+	UpdateUser(user *models.User) bool
 	//DeleteUser 更新用户
 	DeleteUser(id int) bool
 	//GetUserByID 获取用户

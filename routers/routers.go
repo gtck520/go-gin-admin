@@ -99,8 +99,8 @@ func Configure(r *gin.Engine) {
 	//swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	apiPrefix := "/v1/adapi"
-	g := r.Group(apiPrefix)
+	adminApiPrefix := "/v1/adapi"
+	g := r.Group(adminApiPrefix)
 
 	wsGroup := r.Group("/ws")
 	{
@@ -108,25 +108,38 @@ func Configure(r *gin.Engine) {
 	}
 	// 登录验证 jwt token 验证 及信息提取
 	var notCheckLoginURLArr []string
-	notCheckLoginURLArr = append(notCheckLoginURLArr, apiPrefix+"/user/login")
-	notCheckLoginURLArr = append(notCheckLoginURLArr, apiPrefix+"/user/logout")
+	notCheckLoginURLArr = append(notCheckLoginURLArr, adminApiPrefix+"/user/login")
+	notCheckLoginURLArr = append(notCheckLoginURLArr, adminApiPrefix+"/user/logout")
 	g.Use(privilege.UserAuthMiddleware(
 		privilege.AllowPathPrefixSkipper(notCheckLoginURLArr...),
 	))
 	// 权限验证
 	var notCheckPermissionURLArr []string
 	notCheckPermissionURLArr = append(notCheckPermissionURLArr, notCheckLoginURLArr...)
-	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/menu/menubuttonlist")
-	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/menu/allmenu")
-	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/admins/adminsroleidlist")
-	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/user/info")
-	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/user/editpwd")
-	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/role/rolemenuidlist")
-	notCheckPermissionURLArr = append(notCheckPermissionURLArr, apiPrefix+"/role/allrole")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, adminApiPrefix+"/menu/menubuttonlist")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, adminApiPrefix+"/menu/allmenu")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, adminApiPrefix+"/admins/adminsroleidlist")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, adminApiPrefix+"/user/info")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, adminApiPrefix+"/user/editpwd")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, adminApiPrefix+"/role/rolemenuidlist")
+	notCheckPermissionURLArr = append(notCheckPermissionURLArr, adminApiPrefix+"/role/allrole")
 	g.Use(privilege.CasbinMiddleware(
 		privilege.AllowPathPrefixSkipper(notCheckPermissionURLArr...),
 	))
 	//sys
 	RegisterRouterSys(g)
+
+	apiPrefix := "/v1/api"
+	ag := r.Group(apiPrefix)
+	// 登录验证 jwt token 验证 及信息提取
+	var notCheckLoginURLArrApi []string
+	notCheckLoginURLArrApi = append(notCheckLoginURLArrApi, apiPrefix+"/user/login")
+	notCheckLoginURLArrApi = append(notCheckLoginURLArrApi, apiPrefix+"/user/logout")
+	notCheckLoginURLArrApi = append(notCheckLoginURLArrApi, apiPrefix+"/user/register")
+	ag.Use(privilege.UserAuthMiddleware(
+		privilege.AllowPathPrefixSkipper(notCheckLoginURLArrApi...),
+	))
+	RegisterRouterApi(ag)
+
 
 }

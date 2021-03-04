@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/ahmetb/go-linq v3.0.0+incompatible
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+	github.com/appleboy/gin-jwt/v2 v2.6.4
 	github.com/casbin/casbin v1.9.1
 	github.com/coocood/freecache v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
