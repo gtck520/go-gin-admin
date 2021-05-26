@@ -16,7 +16,7 @@
 ├── docs         数据库文件以及文档<br>
 ├── logs     查询日志<br>
 ├── models     数据表实体<br>
-├── page        页面数据返回实体<br>
+├── page        页面数据返回实体与验证实体<br>
 ├── repository 数据访问层<br>
 ├── resource      静态资源<br>
 ├── router       路由<br>

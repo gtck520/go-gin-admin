@@ -6,12 +6,15 @@ import (
 
 	//jwt "github.com/appleboy/gin-jwt/v2"
 	//"github.com/konger/ckgo/common/codes"
+
 	"github.com/konger/ckgo/common/logger"
 	"github.com/konger/ckgo/controller/common"
-	//models "github.com/konger/ckgo/models/common"
-	//"github.com/konger/ckgo/page"
-	service "github.com/konger/ckgo/service/v1/api"
+
+	cmodels "github.com/konger/ckgo/models/common"
+
 	"github.com/gin-gonic/gin"
+	"github.com/konger/ckgo/page"
+	service "github.com/konger/ckgo/service/v1/api"
 	//"net/http"
 )
 
@@ -29,8 +32,8 @@ type User struct {
 }
 
 //Logout 退出登录
-func (a *User) Logout(c *gin.Context) {
-	//common.RespOk(c, http.StatusOK, codes.SUCCESS)
+func (u *User) Logout(c *gin.Context) {
+	common.ResFail(c, "注册失败")
 }
 
 // @Summary 注册用户
@@ -42,10 +45,27 @@ func (a *User) Logout(c *gin.Context) {
 // @Param code query string true "1234"
 // @Success 200 {string} json "{"code":200,"data":{},"message":"ok"}"
 // @Router /v1/api/user/register [post]
-func (a *User) Register(c *gin.Context) {
-
+func (u *User) Register(c *gin.Context) {
+	UserPage := page.User{}
+	err := c.ShouldBind(&UserPage)
+	if err != nil {
+		common.ResFail(c, err.Error())
+		return
+	}
+	if UserPage.Code != "0000" {
+		common.ResFail(c, "验证码错误")
+		return
+	}
+	UserModel := cmodels.User{}
+	UserModel.Phone = UserPage.Phone
+	UserModel.UserPass = UserPage.UserPass
+	//fmt.Printf("%+v\n", UserModel)
+	result := u.Service.AddUser(&UserModel)
+	if result == true {
+		common.ResSuccess(c, "成功")
+	} else {
+		common.ResFail(c, "注册失败")
+	}
 	common.ResSuccess(c, "成功")
+
 }
-
-
-

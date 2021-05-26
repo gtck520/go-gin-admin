@@ -2,20 +2,9 @@ package page
 
 //User 用户登录信息结构体
 type User struct {
-	Roles        []string
-	Introduction string
-	Avatar       string
-	Name         string
-}
+	Phone      string `json:"phone" binding:"required"`        // 电话号码
+	UserPass   string `json:"user_pass" binding:"required"`    // 用户密码
+	ReUserPass string `json:"re_user_pass" binding:"required"` // 用户密码
+	Code       string `json:"code" binding:"required"`         // 用户密码
 
-//Users 用户管理结构体
-type Users struct {
-	ID        int    `json:"id"`
-	Name      string `json:"username"`
-	Password  string `json:"password"`
-	Avatar    string `json:"avatar"`
-	UserType  string `json:"user_type"`
-	State     string `json:"state"`
-	Deteled   string `json:"deteled"`
-	CreatedOn string `json:"created_on"`
 }

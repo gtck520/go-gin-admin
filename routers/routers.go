@@ -3,31 +3,33 @@ package routers
 import (
 	"log"
 
-	_ "github.com/konger/ckgo/docs"
-	"github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"github.com/facebookgo/inject"
 	"github.com/gin-gonic/gin"
-	"github.com/konger/ckgo/controller/common"
 	"github.com/konger/ckgo/common/datasource"
 	"github.com/konger/ckgo/common/logger"
 	"github.com/konger/ckgo/common/middleware/cors"
 	"github.com/konger/ckgo/common/middleware/privilege"
 	"github.com/konger/ckgo/common/setting"
-	"github.com/konger/ckgo/websocket"
+	"github.com/konger/ckgo/controller/common"
 
+	"github.com/konger/ckgo/websocket"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
+
+	"github.com/konger/ckgo/repository"
+	service "github.com/konger/ckgo/service/v1/api"
 
 	//"github.com/konger/ckgo/controller/v1/admin"
+	"io"
 	"net/http"
 	"os"
-	"io"
 	"path/filepath"
 )
 
 //InitRouter 初始化Router
 func InitRouter() *gin.Engine {
-	log_name := filepath.Join(setting.RunPath,"runtime","debug.log")
-	f, _ :=os.Create(log_name)
+	log_name := filepath.Join(setting.RunPath, "runtime", "debug.log")
+	f, _ := os.Create(log_name)
 	//gin.DefaultWriter=io.MultiWriter(f)
 	// 如果你需要同时写入日志文件和控制台上显示，使用下面代码
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
@@ -70,8 +72,8 @@ func Configure(r *gin.Engine) {
 		//&inject.Object{Value: &repository.ArticleRepository{}},
 		//&inject.Object{Value: &service.ArticleService{}},
 		//&inject.Object{Value: &user},
-		// &inject.Object{Value: &repository.UserRepository{}},
-		// &inject.Object{Value: &service.UserService{}},
+		&inject.Object{Value: &repository.UserRepository{}},
+		&inject.Object{Value: &service.UserService{}},
 		// &inject.Object{Value: &repository.RoleRepository{}},
 		// &inject.Object{Value: &service.RoleService{}},
 		// &inject.Object{Value: &repository.BaseRepository{}},
@@ -140,6 +142,5 @@ func Configure(r *gin.Engine) {
 		privilege.AllowPathPrefixSkipper(notCheckLoginURLArrApi...),
 	))
 	RegisterRouterApi(ag)
-
 
 }
