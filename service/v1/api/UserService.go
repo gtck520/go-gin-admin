@@ -3,15 +3,16 @@ package api
 import (
 	"github.com/konger/ckgo/common/logger"
 	models "github.com/konger/ckgo/models/common"
+
 	//pageModel "github.com/konger/ckgo/page"
 	//"github.com/konger/ckgo/page/emun"
-	//"github.com/konger/ckgo/repository"
+	"github.com/konger/ckgo/repository"
 )
 
 // UserService 注入IUserRepository
 type UserService struct {
-	//Repository repository.IUserRepository `inject:""`
-	Log logger.ILogger `inject:""`
+	Repository *repository.UserRepository `inject:""`
+	Log        logger.ILogger             `inject:""`
 }
 
 //AddUser 新建用户，同时新建用户角色

@@ -28,7 +28,7 @@ import (
 //User 注入IUserService
 type User struct {
 	Log     logger.ILogger       `inject:""`
-	Service service.IUserService `inject:""`
+	Service *service.UserService `inject:""`
 }
 
 //Logout 退出登录

@@ -17,7 +17,7 @@ import (
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 
 	controller "github.com/konger/ckgo/controller/v1/api"
-	//"github.com/konger/ckgo/repository"
+	"github.com/konger/ckgo/repository"
 	service "github.com/konger/ckgo/service/v1/api"
 
 	//"github.com/konger/ckgo/controller/v1/admin"
@@ -49,19 +49,19 @@ func InitRouter() *gin.Engine {
 //Configure 配置router
 func Configure(r *gin.Engine) {
 	//启动websocket
-	go websocket.WebsocketManager.Start()
-	go websocket.WebsocketManager.SendService()
-	go websocket.WebsocketManager.SendService()
-	go websocket.WebsocketManager.SendGroupService()
-	go websocket.WebsocketManager.SendGroupService()
-	go websocket.WebsocketManager.SendAllService()
-	go websocket.WebsocketManager.SendAllService()
-	go websocket.TestSendGroup()
-	go websocket.TestSendAll()
+	// go websocket.WebsocketManager.Start()
+	// go websocket.WebsocketManager.SendService()
+	// go websocket.WebsocketManager.SendService()
+	// go websocket.WebsocketManager.SendGroupService()
+	// go websocket.WebsocketManager.SendGroupService()
+	// go websocket.WebsocketManager.SendAllService()
+	// go websocket.WebsocketManager.SendAllService()
+	// go websocket.TestSendGroup()
+	// go websocket.TestSendAll()
 	//controller declare
 	var user controller.User
 	//inject declare
-	//var article admin.Article
+
 	db := datasource.Db{}
 	zap := logger.Logger{}
 	//Injection
@@ -70,9 +70,9 @@ func Configure(r *gin.Engine) {
 		&inject.Object{Value: &db},
 		&inject.Object{Value: &zap},
 		&inject.Object{Value: &user},
-		//&inject.Object{Value: &repository.UserRepository{}},
+		&inject.Object{Value: &repository.UserRepository{}},
 		&inject.Object{Value: &service.UserService{}},
-		//&inject.Object{Value: &repository.BaseRepository{}},
+		&inject.Object{Value: &repository.BaseRepository{}},
 	); err != nil {
 		log.Fatal("inject fatal: ", err)
 	}
