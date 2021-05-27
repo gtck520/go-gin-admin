@@ -16,7 +16,8 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 
-	"github.com/konger/ckgo/repository"
+	controller "github.com/konger/ckgo/controller/v1/api"
+	//"github.com/konger/ckgo/repository"
 	service "github.com/konger/ckgo/service/v1/api"
 
 	//"github.com/konger/ckgo/controller/v1/admin"
@@ -58,7 +59,7 @@ func Configure(r *gin.Engine) {
 	go websocket.TestSendGroup()
 	go websocket.TestSendAll()
 	//controller declare
-	//var user admin.User
+	var user controller.User
 	//inject declare
 	//var article admin.Article
 	db := datasource.Db{}
@@ -66,17 +67,12 @@ func Configure(r *gin.Engine) {
 	//Injection
 	var injector inject.Graph
 	if err := injector.Provide(
-		//&inject.Object{Value: &article},
 		&inject.Object{Value: &db},
 		&inject.Object{Value: &zap},
-		//&inject.Object{Value: &repository.ArticleRepository{}},
-		//&inject.Object{Value: &service.ArticleService{}},
-		//&inject.Object{Value: &user},
-		&inject.Object{Value: &repository.UserRepository{}},
+		&inject.Object{Value: &user},
+		//&inject.Object{Value: &repository.UserRepository{}},
 		&inject.Object{Value: &service.UserService{}},
-		// &inject.Object{Value: &repository.RoleRepository{}},
-		// &inject.Object{Value: &service.RoleService{}},
-		// &inject.Object{Value: &repository.BaseRepository{}},
+		//&inject.Object{Value: &repository.BaseRepository{}},
 	); err != nil {
 		log.Fatal("inject fatal: ", err)
 	}

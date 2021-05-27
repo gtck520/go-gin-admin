@@ -18,8 +18,6 @@ type IUserRepository interface {
 	ExistUserByName(where interface{}) bool
 	//UpdateUser 更新用户
 	UpdateUser(user *models.User) bool
-	//DeleteUser 更新用户
-	DeleteUser(id int) bool
 	//GetUserByID 获取用户
 	GetUserByID(id int) *models.User
 }

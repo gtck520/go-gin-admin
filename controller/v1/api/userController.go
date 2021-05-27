@@ -60,12 +60,12 @@ func (u *User) Register(c *gin.Context) {
 	UserModel.Phone = UserPage.Phone
 	UserModel.UserPass = UserPage.UserPass
 	//fmt.Printf("%+v\n", UserModel)
-	result := u.Service.AddUser(&UserModel)
-	if result == true {
-		common.ResSuccess(c, "成功")
-	} else {
-		common.ResFail(c, "注册失败")
-	}
+	// result := u.Service.AddUser(&UserModel)
+	// if result == true {
+	// 	common.ResSuccess(c, "成功")
+	// } else {
+	// 	common.ResFail(c, "注册失败")
+	// }
 	common.ResSuccess(c, "成功")
 
 }
