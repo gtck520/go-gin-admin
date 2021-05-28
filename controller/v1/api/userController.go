@@ -25,7 +25,7 @@ import (
 //下载安装gin-jwt，"go get github.com/appleboy/gin-jwt"
 //导入import "github.com/appleboy/gin-jwt"
 
-//User 注入IUserService
+//User 注入UserService
 type User struct {
 	Log     logger.ILogger       `inject:""`
 	Service *service.UserService `inject:""`
@@ -59,13 +59,14 @@ func (u *User) Register(c *gin.Context) {
 	UserModel := cmodels.User{}
 	UserModel.Phone = UserPage.Phone
 	UserModel.UserPass = UserPage.UserPass
-	//fmt.Printf("%+v\n", UserModel)
-	// result := u.Service.AddUser(&UserModel)
-	// if result == true {
-	// 	common.ResSuccess(c, "成功")
-	// } else {
-	// 	common.ResFail(c, "注册失败")
-	// }
-	common.ResSuccess(c, "成功")
+	// fmt.Printf("%+v\n", UserModel)
+
+	result := u.Service.AddUser(&UserModel)
+
+	if result == true {
+		common.ResSuccess(c, "成功")
+	} else {
+		common.ResFail(c, "注册失败")
+	}
 
 }

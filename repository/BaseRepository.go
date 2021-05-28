@@ -1,9 +1,9 @@
 package repository
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/konger/ckgo/common/datasource"
 	"github.com/konger/ckgo/common/logger"
-	"github.com/jinzhu/gorm"
 )
 
 //BaseRepository 注入IDb,Logger

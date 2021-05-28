@@ -9,19 +9,19 @@ import (
 	"github.com/konger/ckgo/repository"
 )
 
-// UserService 注入IUserRepository
+// UserService
 type UserService struct {
 	Repository *repository.UserRepository `inject:""`
 	Log        logger.ILogger             `inject:""`
 }
 
-//AddUser 新建用户，同时新建用户角色
-func (a *UserService) AddUser(user *models.User) bool {
+//AddUser 添加用户
+func (u *UserService) AddUser(user *models.User) bool {
 	//用业务逻辑实现事务效果
-	// isOK := a.Repository.AddUser(user)
-	// if !isOK {
-	// 	return false
-	// }
+	isOK := u.Repository.AddUser(user)
+	if !isOK {
+		return false
+	}
 	return true
 
 }

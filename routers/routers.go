@@ -16,11 +16,11 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 
+	"github.com/konger/ckgo/controller/sys"
 	controller "github.com/konger/ckgo/controller/v1/api"
-	"github.com/konger/ckgo/repository"
-	service "github.com/konger/ckgo/service/v1/api"
 
-	//"github.com/konger/ckgo/controller/v1/admin"
+	//service "github.com/konger/ckgo/service/v1/api"
+
 	"io"
 	"net/http"
 	"os"
@@ -58,6 +58,7 @@ func Configure(r *gin.Engine) {
 	// go websocket.WebsocketManager.SendAllService()
 	// go websocket.TestSendGroup()
 	// go websocket.TestSendAll()
+
 	//controller declare
 	var user controller.User
 	//inject declare
@@ -65,14 +66,11 @@ func Configure(r *gin.Engine) {
 	db := datasource.Db{}
 	zap := logger.Logger{}
 	//Injection
-	var injector inject.Graph
+	injector := inject.Graph{}
 	if err := injector.Provide(
 		&inject.Object{Value: &db},
 		&inject.Object{Value: &zap},
 		&inject.Object{Value: &user},
-		&inject.Object{Value: &repository.UserRepository{}},
-		&inject.Object{Value: &service.UserService{}},
-		&inject.Object{Value: &repository.BaseRepository{}},
 	); err != nil {
 		log.Fatal("inject fatal: ", err)
 	}
@@ -124,8 +122,37 @@ func Configure(r *gin.Engine) {
 	g.Use(privilege.CasbinMiddleware(
 		privilege.AllowPathPrefixSkipper(notCheckPermissionURLArr...),
 	))
-	//sys
-	RegisterRouterSys(g)
+	//系统后台接口
+	menu := sys.Menu{}
+	g.GET("/menu/list", menu.List)
+	g.GET("/menu/detail", menu.Detail)
+	g.GET("/menu/allmenu", menu.AllMenu)
+	g.GET("/menu/menubuttonlist", menu.MenuButtonList)
+	g.POST("/menu/delete", menu.Delete)
+	g.POST("/menu/update", menu.Update)
+	g.POST("/menu/create", menu.Create)
+	auser := sys.User{}
+	g.GET("/user/info", auser.Info)
+	g.POST("/user/login", auser.Login)
+	g.POST("/user/logout", auser.Logout)
+	g.POST("/user/editpwd", auser.EditPwd)
+	admins := sys.Admins{}
+	g.GET("/admins/list", admins.List)
+	g.GET("/admins/detail", admins.Detail)
+	g.GET("/admins/adminsroleidlist", admins.AdminsRoleIDList)
+	g.POST("/admins/delete", admins.Delete)
+	g.POST("/admins/update", admins.Update)
+	g.POST("/admins/create", admins.Create)
+	g.POST("/admins/setrole", admins.SetRole)
+	role := sys.Role{}
+	g.GET("/role/list", role.List)
+	g.GET("/role/detail", role.Detail)
+	g.GET("/role/rolemenuidlist", role.RoleMenuIDList)
+	g.GET("/role/allrole", role.AllRole)
+	g.POST("/role/delete", role.Delete)
+	g.POST("/role/update", role.Update)
+	g.POST("/role/create", role.Create)
+	g.POST("/role/setrole", role.SetRole)
 
 	apiPrefix := "/v1/api"
 	ag := r.Group(apiPrefix)
@@ -137,6 +164,10 @@ func Configure(r *gin.Engine) {
 	ag.Use(privilege.UserAuthMiddleware(
 		privilege.AllowPathPrefixSkipper(notCheckLoginURLArrApi...),
 	))
-	RegisterRouterApi(ag)
+
+	//api接口
+	ag.POST("/user/register", user.Register)
+	//app.POST("/user/login", user.Login)
+	ag.POST("/user/logout", user.Logout)
 
 }
