@@ -7,6 +7,7 @@ import (
 	//jwt "github.com/appleboy/gin-jwt/v2"
 	//"github.com/konger/ckgo/common/codes"
 
+	"github.com/konger/ckgo/common/codes"
 	"github.com/konger/ckgo/common/logger"
 	"github.com/konger/ckgo/controller/common"
 
@@ -58,15 +59,24 @@ func (u *User) Register(c *gin.Context) {
 	}
 	UserModel := cmodels.User{}
 	UserModel.Phone = UserPage.Phone
+	UserModel.UserName = UserPage.Phone
 	UserModel.UserPass = UserPage.UserPass
 	// fmt.Printf("%+v\n", UserModel)
 
-	result := u.Service.AddUser(&UserModel)
-
-	if result == true {
-		common.ResSuccess(c, "成功")
+	isExists := u.Service.ExistUserByPhone(UserModel.Phone)
+	if !isExists {
+		result := u.Service.AddUser(&UserModel)
+		if err != nil {
+			common.ResFail(c, err.Error())
+			return
+		}
+		if result == true {
+			common.ResSuccess(c, "成功")
+		} else {
+			common.ResFail(c, "注册失败")
+		}
 	} else {
-		common.ResFail(c, "注册失败")
+		common.ResFailCode(c, codes.GetMsg(codes.ERROR_EXISTS_USER), codes.ERROR_EXISTS_USER)
 	}
 
 }

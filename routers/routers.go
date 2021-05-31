@@ -29,7 +29,7 @@ import (
 
 //InitRouter 初始化Router
 func InitRouter() *gin.Engine {
-	log_name := filepath.Join(setting.RunPath, "runtime", "debug.log")
+	log_name := filepath.Join(setting.RunPath, "runtime", "shell.log")
 	f, _ := os.Create(log_name)
 	//gin.DefaultWriter=io.MultiWriter(f)
 	// 如果你需要同时写入日志文件和控制台上显示，使用下面代码

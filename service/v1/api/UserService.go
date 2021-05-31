@@ -15,9 +15,14 @@ type UserService struct {
 	Log        logger.ILogger             `inject:""`
 }
 
+//ExistUserByName 判断用户名是否已存在
+func (u *UserService) ExistUserByPhone(phone string) bool {
+	where := models.User{Phone: phone}
+	return u.Repository.ExistUserByName(&where)
+}
+
 //AddUser 添加用户
 func (u *UserService) AddUser(user *models.User) bool {
-	//用业务逻辑实现事务效果
 	isOK := u.Repository.AddUser(user)
 	if !isOK {
 		return false

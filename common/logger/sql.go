@@ -1,19 +1,21 @@
 package logger
+
 import (
 	"fmt"
 	//"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"os"
 	"path"
 	"time"
+
+	"github.com/konger/ckgo/common/setting"
+	"github.com/sirupsen/logrus"
 )
 
 func SqlLogger() *logrus.Logger {
 	now := time.Now()
 	logFilePath := ""
-	if dir, err := os.Getwd(); err == nil {
-		logFilePath = dir + "runtime/logs/"
-	}
+	logFilePath = path.Join(setting.RunPath, "runtime/sql/")
+
 	if err := os.MkdirAll(logFilePath, 0777); err != nil {
 		fmt.Println(err.Error())
 	}
@@ -38,7 +40,7 @@ func SqlLogger() *logrus.Logger {
 	logger.Out = src
 
 	//设置日志级别
-	logger.SetLevel(logrus.DebugLevel)
+	logger.SetLevel(logrus.TraceLevel)
 
 	//设置日志格式
 	logger.SetFormatter(&logrus.TextFormatter{

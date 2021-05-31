@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/konger/ckgo/common/setting"
-	"github.com/konger/ckgo/common/logger"
-	"github.com/konger/ckgo/models/sys"
-	"github.com/konger/ckgo/models/db"
-	"github.com/konger/ckgo/models/common"
 	"github.com/jinzhu/gorm"
+	"github.com/konger/ckgo/common/logger"
+	"github.com/konger/ckgo/common/setting"
+	"github.com/konger/ckgo/models/common"
+	"github.com/konger/ckgo/models/db"
+	"github.com/konger/ckgo/models/sys"
 
 	//
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -40,7 +40,7 @@ func (d *Db) Connect() error {
 	}
 	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
 		//return conf["Prefix"] + defaultTableName
-		return  defaultTableName
+		return defaultTableName
 	}
 	gdb.LogMode(true) //打印SQL语句
 	gdb.SingularTable(true)
@@ -49,7 +49,7 @@ func (d *Db) Connect() error {
 	gdb.DB().SetMaxOpenConns(100)
 
 	d.Conn = gdb
-	db.DB=gdb
+	db.DB = gdb
 
 	log.Println("Connect Mysql Success")
 
@@ -60,6 +60,7 @@ func (d *Db) Connect() error {
 func (d *Db) DB() *gorm.DB {
 	return d.Conn
 }
+
 //自动生成数据库
 func Migration() {
 	fmt.Println(db.DB.AutoMigrate(new(sys.Menu)).Error)
@@ -69,4 +70,3 @@ func Migration() {
 	fmt.Println(db.DB.AutoMigrate(new(sys.AdminsRole)).Error)
 	fmt.Println(db.DB.AutoMigrate(new(common.User)).Error)
 }
-
