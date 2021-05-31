@@ -4,9 +4,6 @@ import (
 	//"net/http"
 	//"strconv"
 
-	//jwt "github.com/appleboy/gin-jwt/v2"
-	//"github.com/konger/ckgo/common/codes"
-
 	"github.com/konger/ckgo/common/codes"
 	"github.com/konger/ckgo/common/logger"
 	"github.com/konger/ckgo/controller/common"
@@ -37,12 +34,45 @@ func (u *User) Logout(c *gin.Context) {
 	common.ResFail(c, "注册失败")
 }
 
+// @Summary 用户登录
+// @Description 用户登录
+// @Tags 用户接口
+// @Produce  json
+// @Param phone query string true "18612345678"
+// @Param password query string true "123456"
+// @Param code query string true "1234"
+// @Success 200 {string} json "{"code":200,"data":{},"message":"ok"}"
+// @Router /v1/api/user/register [post]
+
+func (u *User) Login(c *gin.Context) {
+	UserPage := page.UserLogin{}
+	err := c.ShouldBind(&UserPage)
+	if err != nil {
+		common.ResFail(c, err.Error())
+		return
+	}
+	if UserPage.Code != "0000" {
+		common.ResFail(c, "验证码错误")
+		return
+	}
+	UserModel := cmodels.User{}
+	UserModel.Phone = UserPage.Phone
+	UserModel.UserPass = UserPage.UserPass
+	result, err := u.Service.Login(&UserModel)
+	if err != nil {
+		common.ResFail(c, err.Error())
+		return
+	}
+	common.ResSuccess(c, result)
+}
+
 // @Summary 注册用户
 // @Description 注册一个用户
 // @Tags 用户接口
 // @Produce  json
 // @Param phone query string true "18612345678"
-// @Param password query string true "123456"
+// @Param userpass query string true "123456"
+// @Param reuserpass query string true "123456"
 // @Param code query string true "1234"
 // @Success 200 {string} json "{"code":200,"data":{},"message":"ok"}"
 // @Router /v1/api/user/register [post]
@@ -55,6 +85,10 @@ func (u *User) Register(c *gin.Context) {
 	}
 	if UserPage.Code != "0000" {
 		common.ResFail(c, "验证码错误")
+		return
+	}
+	if UserPage.UserPass != UserPage.ReUserPass {
+		common.ResFail(c, "两次密码输入不一致")
 		return
 	}
 	UserModel := cmodels.User{}

@@ -167,7 +167,7 @@ func Configure(r *gin.Engine) {
 
 	//api接口
 	ag.POST("/user/register", user.Register)
-	//app.POST("/user/login", user.Login)
+	ag.POST("/user/login", user.Login)
 	ag.POST("/user/logout", user.Logout)
 
 }

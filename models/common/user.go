@@ -33,13 +33,13 @@ func (User) TableName() string {
 
 // 添加前
 func (m *User) BeforeCreate(scope *gorm.Scope) error {
-	m.CreateTime = uint64(time.Now().Second())
-	m.UpdateTime = uint64(time.Now().Second())
+	m.CreatedAt = time.Now()
+	m.UpdatedAt = time.Now()
 	return nil
 }
 
 // 更新前
 func (m *User) BeforeUpdate(scope *gorm.Scope) error {
-	m.UpdateTime = uint64(time.Now().Second())
+	m.UpdatedAt = time.Now()
 	return nil
 }

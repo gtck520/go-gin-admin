@@ -14,32 +14,13 @@ type UserRepository struct {
 }
 
 //CheckUser 身份验证
-func (a *UserRepository) CheckUser(where interface{}) bool {
+func (a *UserRepository) CheckUser(where interface{}) (bool, *models.User) {
 	var user models.User
 	if err := a.Base.First(where, &user); err != nil {
 		a.Log.Errorf("用户名或密码错误", err)
-		return false
+		return false, nil
 	}
-	return true
-}
-
-//GetUserAvatar 获取用户头像
-func (a *UserRepository) GetUserAvatar(sel *string, where interface{}) *string {
-	var user models.User
-	if err := a.Base.First(where, &user, *sel); err != nil {
-		a.Log.Errorf("获取用户头像失败", err)
-	}
-	return &user.Avatar
-}
-
-//GetUserID 获取用户ID
-func (a *UserRepository) GetUserID(sel *string, where interface{}) int {
-	var user models.User
-	if err := a.Base.First(where, &user, *sel); err != nil {
-		a.Log.Errorf("获取用户ID失败", err)
-		return -1
-	}
-	return int(user.ID)
+	return true, &user
 }
 
 //GetUsers 获取用户信息
@@ -61,21 +42,20 @@ func (a *UserRepository) AddUser(user *models.User) bool {
 }
 
 //ExistUserByName 判断用户名是否已存在
-func (a *UserRepository) ExistUserByName(where interface{}) bool {
+func (a *UserRepository) ExistUserByName(where interface{}) (bool, *models.User) {
 	var user models.User
-	sel := "id"
-	err := a.Base.First(where, &user, sel)
-	a.Log.Infof("%+v", user)
+	err := a.Base.First(where, &user, "id", "salt")
+	// a.Log.Infof("%+v", user)
 	//记录不存在错误(RecordNotFound)，返回false
 	if gorm.IsRecordNotFoundError(err) {
-		return false
+		return false, nil
 	}
 	//其他类型的错误，写下日志，返回false
 	if err != nil {
 		a.Log.Error(err)
-		return false
+		return false, nil
 	}
-	return true
+	return true, &user
 }
 
 //UpdateUser 更新用户
