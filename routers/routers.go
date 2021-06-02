@@ -31,7 +31,7 @@ import (
 func InitRouter() *gin.Engine {
 	log_name := filepath.Join(setting.RunPath, "runtime", "shell.log")
 	f, _ := os.Create(log_name)
-	//gin.DefaultWriter=io.MultiWriter(f)
+	//gin.DefaultWriter = io.MultiWriter(f)
 	// 如果你需要同时写入日志文件和控制台上显示，使用下面代码
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 	r := gin.New()
@@ -169,5 +169,5 @@ func Configure(r *gin.Engine) {
 	ag.POST("/user/register", user.Register)
 	ag.POST("/user/login", user.Login)
 	ag.POST("/user/logout", user.Logout)
-
+	ag.POST("/user/info", user.Info)
 }

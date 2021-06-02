@@ -8,8 +8,6 @@ import (
 	"github.com/konger/ckgo/common/setting"
 )
 
-
-
 // 创建token
 func CreateToken(m map[string]string, keys ...string) string {
 	key := setting.App["JwtSecret"].(string)
@@ -32,14 +30,19 @@ func ParseToken(tokenString string, keys ...string) (map[string]string, bool) {
 	if len(keys) > 0 {
 		key = keys[0]
 	}
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(key), nil
 	})
+	if err != nil {
+		fmt.Sprintf("Unexpected signing method: %s", err.Error())
+		return nil, false
+
+	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		mapData:=make(map[string]string)
+		mapData := make(map[string]string)
 		for index, val := range claims {
 			mapData[index] = fmt.Sprintf("%v", val)
 		}

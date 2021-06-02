@@ -68,7 +68,7 @@ func (b *BaseRepository) First(where interface{}, out interface{}, selects ...st
 }
 
 // FirstByID 根据条件获取一个实体
-func (b *BaseRepository) FirstByID(out interface{}, id int) error {
+func (b *BaseRepository) FirstByID(out interface{}, id uint) error {
 	return b.Source.DB().First(out, id).Error
 }
 

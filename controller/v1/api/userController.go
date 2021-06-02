@@ -114,3 +114,23 @@ func (u *User) Register(c *gin.Context) {
 	}
 
 }
+
+// @Summary 获取用户信息
+// @Description 获取用户信息
+// @Tags 用户接口
+// @Produce  json
+// @Param phone query string true "18612345678"
+// @Param password query string true "123456"
+// @Param code query string true "1234"
+// @Success 200 {string} json "{"code":200,"data":{},"message":"ok"}"
+// @Router /v1/api/user/info [post]
+
+func (u *User) Info(c *gin.Context) {
+	user_id, _ := c.Get(codes.USER_ID_Key)
+	user, err := u.Service.GetUserById(user_id.(uint))
+	if err != nil {
+		common.ResFail(c, err.Error())
+		return
+	}
+	common.ResSuccess(c, user)
+}

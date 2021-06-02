@@ -80,3 +80,13 @@ func (u *UserService) Login(user *models.User) (interface{}, error) {
 	return resData, nil
 
 }
+
+//GetUserById 根据id获取用户信息
+func (u *UserService) GetUserById(Id uint) (interface{}, error) {
+	User := u.Repository.GetUserByID(Id)
+	if User == nil {
+		return nil, errors.New("该用户信息不存在")
+	}
+	return User, nil
+
+}
