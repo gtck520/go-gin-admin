@@ -51,22 +51,11 @@ func Configure(r *gin.Engine) {
 
 	//controller declare
 	var user controller.User
-
-	//初始化socket参数
-	var socketServer = websocket.ServerManager{
-		Connlist:      make(map[string]*websocket.User),
-		Register:      make(chan *websocket.User, 128),
-		Destroy:       make(chan *websocket.User, 128),
-		ClientMessage: make(chan *websocket.Message, 128),
-		ServerMessage: make(chan *websocket.Message, 128),
-		SysBroadcast:  make(chan *websocket.Message, 128),
-		Len:           0,
-	}
 	//inject declare
 	//广播测试
-	go socketServer.TestChatclient()
+	go websocket.SocketServer.TestChatclient()
 	// 开启服务端
-	go socketServer.OnMessage()
+	go websocket.SocketServer.OnMessage()
 
 	db := datasource.Db{}
 	zap := logger.Logger{}
@@ -100,13 +89,13 @@ func Configure(r *gin.Engine) {
 	//swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	//websocket
+	ws := r.Group("/ws")
+	ws.Use(privilege.UserAuthMiddleware())
+	ws.GET("/chat", websocket.SocketServer.NewChatServer)
+
 	adminApiPrefix := "/v1/adapi"
 	g := r.Group(adminApiPrefix)
-	//websocket
-	wsGroup := r.Group("/ws")
-	{
-		wsGroup.GET("/chat", socketServer.NewChatServer)
-	}
 	// 登录验证 jwt token 验证 及信息提取
 	var notCheckLoginURLArr []string
 	notCheckLoginURLArr = append(notCheckLoginURLArr, adminApiPrefix+"/user/login")

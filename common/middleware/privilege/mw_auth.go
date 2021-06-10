@@ -1,6 +1,7 @@
 package privilege
 
 import (
+	"log"
 	"strconv"
 	"time"
 
@@ -21,9 +22,15 @@ func UserAuthMiddleware(skipper ...SkipperFunc) gin.HandlerFunc {
 			return
 		}
 		var uuid string
-		if t := c.GetHeader(codes.TOKEN_KEY); t != "" {
+		token := c.GetHeader(codes.TOKEN_KEY)
+		if token == "" {
+			token = c.Query(codes.TOKEN_KEY)
+		}
+		//log.Println("token:", token)
+		if t := token; t != "" {
 			userInfo, ok := jwt.ParseToken(t)
 			if !ok {
+				log.Println("token 无效")
 				common.ResFailCode(c, "token 无效", 50008)
 				return
 			}
@@ -31,6 +38,7 @@ func UserAuthMiddleware(skipper ...SkipperFunc) gin.HandlerFunc {
 			exp := time.Unix(exptimestamp, 0)
 			ok = exp.After(time.Now())
 			if !ok {
+				log.Println("token 过期")
 				common.ResFailCode(c, "token 过期", 50014)
 				return
 			}
@@ -41,6 +49,7 @@ func UserAuthMiddleware(skipper ...SkipperFunc) gin.HandlerFunc {
 			//查询用户ID
 			val, err := cache.Get([]byte(uuid))
 			if err != nil {
+				log.Println("token 无效")
 				common.ResFailCode(c, "token 无效", 50008)
 				return
 			}

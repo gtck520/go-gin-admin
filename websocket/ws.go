@@ -8,6 +8,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/konger/ckgo/common/codes"
+	"github.com/konger/ckgo/common/logger"
+	"github.com/konger/ckgo/repository"
 
 	"log"
 	"net/http"
@@ -16,13 +19,14 @@ import (
 //服务管理
 type ServerManager struct {
 	Connlist      map[string]*User //所有连接通道
-	Register      chan *User       //注册通道
-	Destroy       chan *User       //注销通道
+	register      chan *User       //发送客户端消息通道
 	ClientMessage chan *Message    //发送客户端消息通道
 	ServerMessage chan *Message    //发送服务端消息通道
 	SysBroadcast  chan *Message    //系统广播通道
 	Len           int              //长度
 	Lock          sync.Mutex
+	Repository    *repository.UserRepository `inject:""`
+	Log           logger.ILogger             `inject:""`
 }
 type User struct {
 	Conn     *websocket.Conn
@@ -64,10 +68,17 @@ type ClientMessage struct {
 
 //客户端连接列表
 var upgrader = websocket.Upgrader{}
-
-//var Mux sync.RWMutex
+var SocketServer ServerManager
 
 func init() {
+	//初始化socket参数
+	SocketServer = ServerManager{
+		Connlist:      make(map[string]*User),
+		ClientMessage: make(chan *Message, 128),
+		ServerMessage: make(chan *Message, 128),
+		SysBroadcast:  make(chan *Message, 128),
+		Len:           0,
+	}
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -78,6 +89,8 @@ func init() {
 	}
 }
 func (s *ServerManager) NewChatServer(c *gin.Context) {
+	UserId, ok := c.Get(codes.USER_ID_Key)
+	log.Println("userid:", UserId)
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
@@ -85,6 +98,27 @@ func (s *ServerManager) NewChatServer(c *gin.Context) {
 	}
 	//客户端连接成功
 	log.Print("客户端连接成功：" + conn.RemoteAddr().String())
+
+	if !ok {
+		content, _ := json.Marshal("用户id不存在，无法绑定")
+		s.ClientMessage <- &Message{
+			conn:        conn,
+			content:     content,
+			context:     c,
+			messageType: 1,
+		}
+	}
+	//用户数据
+	// UserInfo := s.Repository.GetUserByID(UserId.(uint))
+	// user := &User{
+	// 	Conn:     conn,
+	// 	Name:     UserInfo.Phone,
+	// 	Id:       UserId.(string),
+	// 	Avator:   "string",
+	// 	To_id:    "string",
+	// 	group_id: "string",
+	// }
+	// s.register <- user
 
 	for {
 		//接受消息
@@ -111,6 +145,7 @@ func (s *ServerManager) NewChatServer(c *gin.Context) {
 			}
 			continue
 		}
+
 		s.ServerMessage <- &Message{
 			conn:        conn,
 			content:     receive,
@@ -124,9 +159,9 @@ func (s *ServerManager) OnMessage() {
 		select {
 		case message := <-s.ClientMessage:
 			log.Println("服务端:", string(message.content))
-			// Mux.Lock()
+			s.Lock.Lock()
 			message.conn.WriteMessage(websocket.TextMessage, message.content)
-			// Mux.Unlock()
+			s.Lock.Unlock()
 		case message := <-s.ServerMessage:
 			var typeMsg TypeMessage
 			json.Unmarshal(message.content, &typeMsg)
@@ -141,10 +176,11 @@ func (s *ServerManager) OnMessage() {
 					Type: "pong",
 				}
 				str, _ := json.Marshal(msg)
-
+				s.Lock.Lock()
 				conn.WriteMessage(websocket.TextMessage, str)
+				s.Lock.Unlock()
+			case "register":
 
-			case "bind":
 				s.Len++
 				s.Connlist[strconv.Itoa(s.Len)] = &User{
 					Conn:     conn,
