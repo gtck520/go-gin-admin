@@ -48,20 +48,25 @@ func InitRouter() *gin.Engine {
 
 //Configure 配置router
 func Configure(r *gin.Engine) {
-	//启动websocket
-	// go websocket.WebsocketManager.Start()
-	// go websocket.WebsocketManager.SendService()
-	// go websocket.WebsocketManager.SendService()
-	// go websocket.WebsocketManager.SendGroupService()
-	// go websocket.WebsocketManager.SendGroupService()
-	// go websocket.WebsocketManager.SendAllService()
-	// go websocket.WebsocketManager.SendAllService()
-	// go websocket.TestSendGroup()
-	// go websocket.TestSendAll()
 
 	//controller declare
 	var user controller.User
+
+	//初始化socket参数
+	var socketServer = websocket.ServerManager{
+		Connlist:      make(map[string]*websocket.User),
+		Register:      make(chan *websocket.User, 128),
+		Destroy:       make(chan *websocket.User, 128),
+		ClientMessage: make(chan *websocket.Message, 128),
+		ServerMessage: make(chan *websocket.Message, 128),
+		SysBroadcast:  make(chan *websocket.Message, 128),
+		Len:           0,
+	}
 	//inject declare
+	//广播测试
+	go socketServer.TestChatclient()
+	// 开启服务端
+	go socketServer.OnMessage()
 
 	db := datasource.Db{}
 	zap := logger.Logger{}
@@ -97,10 +102,10 @@ func Configure(r *gin.Engine) {
 
 	adminApiPrefix := "/v1/adapi"
 	g := r.Group(adminApiPrefix)
-
+	//websocket
 	wsGroup := r.Group("/ws")
 	{
-		wsGroup.GET("/:channel", websocket.WebsocketManager.WsClient)
+		wsGroup.GET("/chat", socketServer.NewChatServer)
 	}
 	// 登录验证 jwt token 验证 及信息提取
 	var notCheckLoginURLArr []string

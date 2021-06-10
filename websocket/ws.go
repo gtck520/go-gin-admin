@@ -1,304 +1,178 @@
 package websocket
+
 import (
-	"fmt"
-	"log"
-	"net/http"
+	"encoding/json"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	uuid "github.com/satori/go.uuid"
+
+	"log"
+	"net/http"
 )
 
-// Manager 所有 websocket 信息
-type Manager struct {
-	Group map[string]map[string]*Client
-	groupCount, clientCount uint
-	Lock sync.Mutex
-	Register, UnRegister chan *Client
-	Message	chan *MessageData
-	GroupMessage chan *GroupMessageData
-	BroadCastMessage chan *BroadCastMessageData
+//服务管理
+type ServerManager struct {
+	Connlist      map[string]*User //所有连接通道
+	Register      chan *User       //注册通道
+	Destroy       chan *User       //注销通道
+	ClientMessage chan *Message    //发送客户端消息通道
+	ServerMessage chan *Message    //发送服务端消息通道
+	SysBroadcast  chan *Message    //系统广播通道
+	Len           int              //长度
+	Lock          sync.Mutex
+}
+type User struct {
+	Conn     *websocket.Conn
+	Name     string
+	Id       string
+	Avator   string
+	To_id    string
+	group_id string
 }
 
-// Client 单个 websocket 信息
-type Client struct {
-	Id, Group string
-	Socket *websocket.Conn
-	Message   chan []byte
+// 消息载体
+type Message struct {
+	conn        *websocket.Conn
+	context     *gin.Context
+	content     []byte
+	messageType int
 }
 
-// messageData 单个发送数据信息
-type MessageData struct {
-	Id, Group string
-	Message    []byte
+//发送内容content
+type TypeMessage struct {
+	Type interface{} `json:"type"`
+	Data interface{} `json:"data"`
 }
 
-// groupMessageData 组广播数据信息
-type GroupMessageData struct {
-	Group string
-	Message    []byte
+//TypeMessage Data
+type ClientMessage struct {
+	Name      string `json:"name"`
+	Avator    string `json:"avator"`
+	Id        string `json:"id"`
+	VisitorId string `json:"visitor_id"`
+	Group     string `json:"group"`
+	Time      string `json:"time"`
+	ToId      string `json:"to_id"`
+	Content   string `json:"content"`
+	City      string `json:"city"`
+	ClientIp  string `json:"client_ip"`
+	Refer     string `json:"refer"`
 }
 
-// 广播发送数据信息
-type BroadCastMessageData struct {
-	Message    []byte
-}
+//客户端连接列表
+var upgrader = websocket.Upgrader{}
 
-// 读信息，从 websocket 连接直接读取数据
-func (c *Client) Read() {
-	defer func() {
-		WebsocketManager.UnRegister <- c
-		log.Printf("client [%s] disconnect", c.Id)
-		if err := c.Socket.Close(); err != nil {
-			log.Printf("client [%s] disconnect err: %s", c.Id, err)
-		}
-	}()
+//var Mux sync.RWMutex
 
-	for {
-		messageType, message, err := c.Socket.ReadMessage()
-		if err != nil || messageType == websocket.CloseMessage {
-			break
-		}
-		log.Printf("client [%s] receive message: %s", c.Id, string(message))
-		c.Message <- message
-	}
-}
-
-// 写信息，从 channel 变量 Send 中读取数据写入 websocket 连接
-func (c *Client) Write() {
-	defer func() {
-		log.Printf("client [%s] disconnect", c.Id)
-		if err := c.Socket.Close(); err != nil {
-			log.Printf("client [%s] disconnect err: %s", c.Id, err)
-		}
-	}()
-
-	for {
-		select {
-		case message, ok := <-c.Message:
-			if !ok {
-				_ = c.Socket.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-			log.Printf("client [%s] write message: %s", c.Id, string(message))
-			err := c.Socket.WriteMessage(websocket.BinaryMessage, message)
-			if err != nil {
-				log.Printf("client [%s] writemessage err: %s", c.Id, err)
-			}
-		}
-	}
-}
-
-// 启动 websocket 管理器
-func (manager *Manager) Start() {
-	log.Printf("websocket manage start")
-	for {
-		select {
-		// 注册
-		case client := <-manager.Register:
-			log.Printf("client [%s] connect", client.Id)
-			log.Printf("register client [%s] to group [%s]", client.Id, client.Group)
-
-			manager.Lock.Lock()
-			if manager.Group[client.Group] == nil {
-				manager.Group[client.Group] = make(map[string]*Client)
-				manager.groupCount += 1
-			}
-			manager.Group[client.Group][client.Id] = client
-			manager.clientCount += 1
-			manager.Lock.Unlock()
-
-			// 注销
-		case client := <-manager.UnRegister:
-			log.Printf("unregister client [%s] from group [%s]", client.Id, client.Group)
-			manager.Lock.Lock()
-			if _, ok := manager.Group[client.Group]; ok {
-				if _, ok := manager.Group[client.Group][client.Id]; ok {
-					close(client.Message)
-					delete(manager.Group[client.Group], client.Id)
-					manager.clientCount -= 1
-					if len(manager.Group[client.Group]) == 0 {
-						//log.Printf("delete empty group [%s]", client.Group)
-						delete(manager.Group, client.Group)
-						manager.groupCount -= 1
-					}
-				}
-			}
-			manager.Lock.Unlock()
-
-			// 发送广播数据到某个组的 channel 变量 Send 中
-			//case data := <-manager.boardCast:
-			//	if groupMap, ok := manager.wsGroup[data.GroupId]; ok {
-			//		for _, conn := range groupMap {
-			//			conn.Send <- data.Data
-			//		}
-			//	}
-		}
-	}
-}
-
-// 处理单个 client 发送数据
-func (manager *Manager) SendService() {
-	for {
-		select {
-		case data := <-manager.Message:
-			if groupMap, ok := manager.Group[data.Group]; ok {
-				if conn, ok := groupMap[data.Id]; ok {
-					conn.Message <- data.Message
-				}
-			}
-		}
-	}
-}
-
-// 处理 group 广播数据
-func (manager *Manager) SendGroupService() {
-	for {
-		select {
-		// 发送广播数据到某个组的 channel 变量 Send 中
-		case data := <-manager.GroupMessage:
-			if groupMap, ok := manager.Group[data.Group]; ok {
-				for _, conn := range groupMap {
-					conn.Message <- data.Message
-				}
-			}
-		}
-	}
-}
-
-// 处理广播数据
-func (manager *Manager) SendAllService() {
-	for {
-		select {
-		case data := <-manager.BroadCastMessage:
-			for _, v := range manager.Group {
-				for _, conn := range v {
-					conn.Message <- data.Message
-				}
-			}
-		}
-	}
-}
-
-// 向指定的 client 发送数据
-func (manager *Manager) Send(id string, group string, message []byte) {
-	data := &MessageData{
-		Id: id,
-		Group: group,
-		Message:    message,
-	}
-	manager.Message <- data
-}
-
-// 向指定的 Group 广播
-func (manager *Manager) SendGroup(group string, message []byte) {
-	data := &GroupMessageData{
-		Group: group,
-		Message:    message,
-	}
-	manager.GroupMessage <- data
-}
-
-// 广播
-func (manager *Manager) SendAll(message []byte) {
-	data := &BroadCastMessageData{
-		Message:    message,
-	}
-	manager.BroadCastMessage <- data
-}
-
-// 注册
-func (manager *Manager) RegisterClient(client *Client) {
-	manager.Register <- client
-}
-
-// 注销
-func (manager *Manager) UnRegisterClient(client *Client) {
-	manager.UnRegister <- client
-}
-
-// 当前组个数
-func (manager *Manager) LenGroup() uint {
-	return manager.groupCount
-}
-
-// 当前连接个数
-func (manager *Manager) LenClient() uint {
-	return manager.clientCount
-}
-
-// 获取 wsManager 管理器信息
-func (manager *Manager) Info() map[string]interface{} {
-	managerInfo := make(map[string]interface{})
-	managerInfo["groupLen"] = manager.LenGroup()
-	managerInfo["clientLen"] = manager.LenClient()
-	managerInfo["chanRegisterLen"] = len(manager.Register)
-	managerInfo["chanUnregisterLen"] = len(manager.UnRegister)
-	managerInfo["chanMessageLen"] = len(manager.Message)
-	managerInfo["chanGroupMessageLen"] = len(manager.GroupMessage)
-	managerInfo["chanBroadCastMessageLen"] = len(manager.BroadCastMessage)
-	return managerInfo
-}
-
-// 初始化 wsManager 管理器
-var WebsocketManager = Manager{
-	Group: make(map[string]map[string]*Client),
-	Register:    make(chan *Client, 128),
-	UnRegister:  make(chan *Client, 128),
-	GroupMessage:   make(chan *GroupMessageData, 128),
-	Message:   make(chan *MessageData, 128),
-	BroadCastMessage: make(chan *BroadCastMessageData, 128),
-	groupCount: 0,
-	clientCount: 0,
-}
-
-// gin 处理 websocket handler
-func (manager *Manager) WsClient(ctx *gin.Context) {
-	upGrader := websocket.Upgrader{
-		// cross origin domain
+func init() {
+	upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		// 解决跨域问题
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
-		// 处理 Sec-WebSocket-Protocol Header
-		Subprotocols: []string{ctx.GetHeader("Sec-WebSocket-Protocol")},
 	}
-
-	conn, err := upGrader.Upgrade(ctx.Writer, ctx.Request, nil)
+}
+func (s *ServerManager) NewChatServer(c *gin.Context) {
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		log.Printf("websocket connect error: %s", ctx.Param("channel"))
+		log.Print("upgrade:", err)
 		return
 	}
+	//客户端连接成功
+	log.Print("客户端连接成功：" + conn.RemoteAddr().String())
 
-	client := &Client{
-		Id:     uuid.NewV4().String(),
-		Group:  ctx.Param("channel"),
-		Socket: conn,
-		Message:   make(chan []byte, 1024),
-	}
-
-	manager.RegisterClient(client)
-	go client.Read()
-	go client.Write()
-	time.Sleep(time.Second * 15)
-	// 测试单个 client 发送数据
-	manager.Send(client.Id, client.Group, []byte("Send message ----" + time.Now().Format("2006-01-02 15:04:05")))
-}
-
-// 测试组广播
-func TestSendGroup() {
 	for {
-		time.Sleep(time.Second * 20)
-		WebsocketManager.SendGroup("leffss", []byte("SendGroup message ----" + time.Now().Format("2006-01-02 15:04:05")))
+		//接受消息
+		var receive []byte
+		var recevString string
+		messageType, receive, err := conn.ReadMessage()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		recevString = string(receive)
+		log.Println("客户端:", recevString)
+
+		var typeMsg TypeMessage
+		json.Unmarshal(receive, &typeMsg)
+		if typeMsg.Type == nil || typeMsg.Data == nil {
+			log.Println("消息格式错误：", recevString)
+			content, _ := json.Marshal("消息格式错误")
+			s.ClientMessage <- &Message{
+				conn:        conn,
+				content:     content,
+				context:     c,
+				messageType: messageType,
+			}
+			continue
+		}
+		s.ServerMessage <- &Message{
+			conn:        conn,
+			content:     receive,
+			context:     c,
+			messageType: messageType,
+		}
 	}
 }
+func (s *ServerManager) OnMessage() {
+	for {
+		select {
+		case message := <-s.ClientMessage:
+			log.Println("服务端:", string(message.content))
+			// Mux.Lock()
+			message.conn.WriteMessage(websocket.TextMessage, message.content)
+			// Mux.Unlock()
+		case message := <-s.ServerMessage:
+			var typeMsg TypeMessage
+			json.Unmarshal(message.content, &typeMsg)
+			conn := message.conn
+			msgType := typeMsg.Type.(string)
+			log.Println("客户端:", string(message.content))
 
-// 测试广播
-func TestSendAll() {
+			switch msgType {
+			//心跳
+			case "ping":
+				msg := TypeMessage{
+					Type: "pong",
+				}
+				str, _ := json.Marshal(msg)
+
+				conn.WriteMessage(websocket.TextMessage, str)
+
+			case "bind":
+				s.Len++
+				s.Connlist[strconv.Itoa(s.Len)] = &User{
+					Conn:     conn,
+					Name:     "匿名" + strconv.Itoa(s.Len),
+					Id:       strconv.Itoa(s.Len),
+					Avator:   "string",
+					To_id:    "string",
+					group_id: "string",
+				}
+
+			}
+
+		}
+
+	}
+
+}
+func (s *ServerManager) TestChatclient() {
 	for {
 		time.Sleep(time.Second * 25)
-		WebsocketManager.SendAll([]byte("SendAll message ----" + time.Now().Format("2006-01-02 15:04:05")))
-		fmt.Println(WebsocketManager.Info())
+		for key, otherKefu := range s.Connlist {
+			str, _ := json.Marshal("发送给：" + key + "；" + time.Now().Format("2006-01-02 15:04:05"))
+
+			err := otherKefu.Conn.WriteMessage(websocket.TextMessage, str)
+			if err == nil {
+
+			}
+		}
+		log.Println("发送")
 	}
 }
