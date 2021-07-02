@@ -51,6 +51,7 @@ func Configure(r *gin.Engine) {
 
 	//controller declare
 	var user controller.User
+	var friend controller.Friend
 	//inject declare
 	//广播测试
 	go websocket.SocketServer.TestChatclient()
@@ -65,6 +66,7 @@ func Configure(r *gin.Engine) {
 		&inject.Object{Value: &db},
 		&inject.Object{Value: &zap},
 		&inject.Object{Value: &user},
+		&inject.Object{Value: &friend},
 	); err != nil {
 		log.Fatal("inject fatal: ", err)
 	}
@@ -164,4 +166,5 @@ func Configure(r *gin.Engine) {
 	ag.POST("/user/login", user.Login)
 	ag.POST("/user/logout", user.Logout)
 	ag.POST("/user/info", user.Info)
+	ag.GET("/friend/friend_list", friend.FriendList)
 }

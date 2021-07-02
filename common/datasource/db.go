@@ -69,4 +69,7 @@ func Migration() {
 	fmt.Println(db.DB.AutoMigrate(new(sys.Role)).Error)
 	fmt.Println(db.DB.AutoMigrate(new(sys.AdminsRole)).Error)
 	fmt.Println(db.DB.AutoMigrate(new(common.User)).Error)
+	fmt.Println(db.DB.AutoMigrate(new(common.Friend)).Error)
+	fmt.Println(db.DB.AutoMigrate(new(common.Group)).Error)
+	fmt.Println(db.DB.AutoMigrate(new(common.UserGroup)).Error)
 }

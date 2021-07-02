@@ -109,16 +109,16 @@ func (s *ServerManager) NewChatServer(c *gin.Context) {
 		}
 	}
 	//用户数据
-	// UserInfo := s.Repository.GetUserByID(UserId.(uint))
-	// user := &User{
-	// 	Conn:     conn,
-	// 	Name:     UserInfo.Phone,
-	// 	Id:       UserId.(string),
-	// 	Avator:   "string",
-	// 	To_id:    "string",
-	// 	group_id: "string",
-	// }
-	// s.register <- user
+	UserInfo := s.Repository.GetUserByID(UserId.(uint))
+	user := &User{
+		Conn:     conn,
+		Name:     UserInfo.Phone,
+		Id:       UserId.(string),
+		Avator:   "string",
+		To_id:    "string",
+		group_id: "string",
+	}
+	s.register <- user
 
 	for {
 		//接受消息

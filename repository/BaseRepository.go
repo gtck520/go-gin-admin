@@ -12,6 +12,12 @@ type BaseRepository struct {
 	Log    logger.ILogger `inject:""`
 }
 
+type Where struct {
+	Op  string      //操作符
+	Wh1 interface{} //条件1
+	Wh2 interface{} //条件2
+}
+
 // Create 创建实体
 func (b *BaseRepository) Create(value interface{}) error {
 	return b.Source.DB().Create(value).Error
@@ -74,9 +80,22 @@ func (b *BaseRepository) FirstByID(out interface{}, id uint) error {
 
 // Find 根据条件返回数据
 func (b *BaseRepository) Find(where interface{}, out interface{}, sel string, orders ...string) error {
-	db := b.Source.DB().Where(where)
+	var where1 interface{}
+	var where2 interface{}
+	value, ok := where.(Where)
+	if ok {
+		where1 = value.Wh1
+		where2 = value.Wh2
+	} else {
+		where1 = where
+	}
+
+	db := b.Source.DB().Where(where1)
 	if sel != "" {
 		db = db.Select(sel)
+	}
+	if value.Op == "or" {
+		db = db.Or(where2)
 	}
 	if len(orders) > 0 {
 		for _, order := range orders {
