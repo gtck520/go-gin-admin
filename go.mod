@@ -4,8 +4,6 @@ go 1.15
 
 require (
 	github.com/ahmetb/go-linq v3.0.0+incompatible
-	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
-	github.com/appleboy/gin-jwt/v2 v2.6.4
 	github.com/casbin/casbin v1.9.1
 	github.com/coocood/freecache v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -17,6 +15,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-ini/ini v1.62.0
 	github.com/go-openapi/spec v0.20.3 // indirect
+	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
@@ -27,9 +26,6 @@ require (
 	github.com/lib/pq v1.2.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.7.0
@@ -37,18 +33,16 @@ require (
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/swaggo/gin-swagger v1.3.0
-	github.com/swaggo/swag v1.7.0
+	github.com/swaggo/swag v1.7.0 // indirect
 	github.com/ugorji/go v1.2.4 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
-	golang.org/x/net v0.0.0-20210222171744-9060382bd457 // indirect
-	golang.org/x/sys v0.0.0-20210223095934-7937bea0104d // indirect
-	golang.org/x/tools v0.1.0 // indirect
+	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
+	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
+	golang.org/x/tools v0.1.1 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/ini.v1 v1.51.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
 replace (
