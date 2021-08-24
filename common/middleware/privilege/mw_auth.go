@@ -25,6 +25,10 @@ func UserAuthMiddleware(skipper ...SkipperFunc) gin.HandlerFunc {
 		token := c.GetHeader(codes.TOKEN_KEY)
 		if token == "" {
 			token = c.Query(codes.TOKEN_KEY)
+			if token == "" {
+				token = c.GetHeader("Sec-WebSocket-Protocol")
+				c.Header("Sec-WebSocket-Protocol", token)
+			}
 		}
 		//log.Println("token:", token)
 		if t := token; t != "" {

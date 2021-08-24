@@ -22,9 +22,9 @@ func (a *FriendRepository) AddFriend(friend *models.Friend) bool {
 
 //ExistUserByName
 func (a *FriendRepository) GetFriendList(where interface{}) (bool, interface{}) {
-	var friends []
-	if err := a.Base.Find(where, &friend, ""); err != nil {
+	var friends []models.Friend
+	if err := a.Base.Find(where, &friends, ""); err != nil {
 		a.Log.Errorf("获取好友列表异常", err)
 	}
-	return true, &friend
+	return true, &friends
 }

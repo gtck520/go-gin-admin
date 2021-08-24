@@ -98,7 +98,7 @@ func (a *UserRepository) ExistUserByName(where interface{}) (bool, *models.User)
 
 //GetUserByID 获取用户
 func (a *UserRepository) GetUserByID(id uint) *models.User {
-	var user models.User
+	user := models.User{}
 	if err := a.Base.FirstByID(&user, id); err != nil {
 		a.Log.Error(err)
 	}

@@ -3,10 +3,11 @@ package common
 import (
 	"net/http"
 
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 	"github.com/konger/ckgo/common/codes"
 	"github.com/konger/ckgo/common/setting"
-	"github.com/gin-gonic/gin"
-	"strconv"
 )
 
 type ResponseModel struct {
@@ -41,7 +42,7 @@ func ResFail(c *gin.Context, msg string) {
 // 响应失败
 func ResFailCode(c *gin.Context, msg string, code int) {
 	ret := ResponseModelBase{Code: code, Message: msg}
-	ResJSON(c, http.StatusOK, &ret)
+	ResJSON(c, http.StatusBadRequest, &ret)
 }
 
 // 响应JSON数据

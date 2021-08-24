@@ -10,7 +10,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/konger/ckgo/common/codes"
 	"github.com/konger/ckgo/common/logger"
-	"github.com/konger/ckgo/repository"
+	"github.com/konger/ckgo/common/util/convert"
+	service "github.com/konger/ckgo/service/v1/api"
 
 	"log"
 	"net/http"
@@ -25,8 +26,8 @@ type ServerManager struct {
 	SysBroadcast  chan *Message    //系统广播通道
 	Len           int              //长度
 	Lock          sync.Mutex
-	Repository    *repository.UserRepository `inject:""`
-	Log           logger.ILogger             `inject:""`
+	UserService   *service.UserService `inject:""`
+	Log           logger.ILogger       `inject:""`
 }
 type User struct {
 	Conn     *websocket.Conn
@@ -109,11 +110,11 @@ func (s *ServerManager) NewChatServer(c *gin.Context) {
 		}
 	}
 	//用户数据
-	UserInfo := s.Repository.GetUserByID(UserId.(uint))
+	UserInfo := s.UserService.Repository.GetUserByID(UserId.(uint))
 	user := &User{
 		Conn:     conn,
 		Name:     UserInfo.Phone,
-		Id:       UserId.(string),
+		Id:       convert.ToString(UserId),
 		Avator:   "string",
 		To_id:    "string",
 		group_id: "string",
