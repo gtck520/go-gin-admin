@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"log"
+
 	"github.com/jinzhu/gorm"
 	"github.com/konger/ckgo/common/datasource"
 	"github.com/konger/ckgo/common/logger"
@@ -13,9 +15,9 @@ type BaseRepository struct {
 }
 
 type Where struct {
-	Op  string      //操作符
-	Wh1 interface{} //条件1
-	Wh2 interface{} //条件2
+	Op  string                 //操作符
+	Wh1 map[string]interface{} //条件1
+	Wh2 map[string]interface{} //条件2
 }
 
 // Create 创建实体
@@ -82,13 +84,15 @@ func (b *BaseRepository) FirstByID(out interface{}, id uint) error {
 func (b *BaseRepository) Find(where interface{}, out interface{}, sel string, orders ...string) error {
 	var where1 interface{}
 	var where2 interface{}
-	value, ok := where.(Where)
+	value, ok := where.(*Where)
 	if ok {
 		where1 = value.Wh1
 		where2 = value.Wh2
 	} else {
 		where1 = where
 	}
+
+	log.Println("条件1", where1)
 
 	db := b.Source.DB().Where(where1)
 	if sel != "" {

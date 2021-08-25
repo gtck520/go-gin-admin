@@ -25,8 +25,9 @@ import (
 
 //User 注入UserService
 type User struct {
-	Log     logger.ILogger       `inject:""`
-	Service *service.UserService `inject:""`
+	Log      logger.ILogger         `inject:""`
+	Service  *service.UserService   `inject:""`
+	Fservice *service.FriendService `inject:""`
 }
 
 //Logout 退出登录
@@ -132,5 +133,9 @@ func (u *User) Info(c *gin.Context) {
 		common.ResFail(c, err.Error())
 		return
 	}
-	common.ResSuccess(c, user)
+	friends := u.Fservice.GetFriendList(user_id.(uint))
+	var data = make(map[string]interface{})
+	data["userinfo"] = user
+	data["friends"] = friends
+	common.ResSuccess(c, data)
 }
