@@ -20,7 +20,7 @@ import (
 //服务管理
 type ServerManager struct {
 	Connlist      map[string]*User //所有连接通道
-	register      chan *User       //发送客户端消息通道
+	register      chan *User       //注册客户端消息通道
 	ClientMessage chan *Message    //发送客户端消息通道
 	ServerMessage chan *Message    //发送服务端消息通道
 	SysBroadcast  chan *Message    //系统广播通道
@@ -75,6 +75,7 @@ func init() {
 	//初始化socket参数
 	SocketServer = ServerManager{
 		Connlist:      make(map[string]*User),
+		register:      make(chan *User, 128),
 		ClientMessage: make(chan *Message, 128),
 		ServerMessage: make(chan *Message, 128),
 		SysBroadcast:  make(chan *Message, 128),
@@ -180,20 +181,11 @@ func (s *ServerManager) OnMessage() {
 				s.Lock.Lock()
 				conn.WriteMessage(websocket.TextMessage, str)
 				s.Lock.Unlock()
-			case "register":
-
-				s.Len++
-				s.Connlist[strconv.Itoa(s.Len)] = &User{
-					Conn:     conn,
-					Name:     "匿名" + strconv.Itoa(s.Len),
-					Id:       strconv.Itoa(s.Len),
-					Avator:   "string",
-					To_id:    "string",
-					group_id: "string",
-				}
-
 			}
-
+		case user := <-s.register:
+			log.Println("注册用户:", user)
+			s.Len++
+			s.Connlist[strconv.Itoa(s.Len)] = user
 		}
 
 	}

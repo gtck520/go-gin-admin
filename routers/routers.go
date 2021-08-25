@@ -53,13 +53,9 @@ func Configure(r *gin.Engine) {
 	var user controller.User
 	var friend controller.Friend
 	var ws_controller controller.Ws
-	var ServerManager websocket.ServerManager
-	//inject declare
-	//广播测试
-	go websocket.SocketServer.TestChatclient()
-	// 开启服务端
-	go websocket.SocketServer.OnMessage()
 
+	//inject declare
+	ServerManager := websocket.SocketServer
 	db := datasource.Db{}
 	zap := logger.Logger{}
 	//Injection
@@ -87,6 +83,12 @@ func Configure(r *gin.Engine) {
 	datasource.Migration()
 	//初始化casbin
 	common.InitCsbinEnforcer()
+
+	//websocket广播测试
+	go ServerManager.TestChatclient()
+	// 开启服务端
+	go ServerManager.OnMessage()
+
 	//首页
 	r.GET("/", func(c *gin.Context) { c.HTML(http.StatusOK, "index.html", nil) })
 	//加载静态资源
