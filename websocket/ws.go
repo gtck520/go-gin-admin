@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"encoding/json"
-	"strconv"
 	"sync"
 	"time"
 
@@ -31,6 +30,7 @@ type ServerManager struct {
 }
 type User struct {
 	Conn     *websocket.Conn
+	Failtime int //发送错误次数
 	Name     string
 	Id       string
 	Avator   string
@@ -40,15 +40,15 @@ type User struct {
 
 // 消息载体
 type Message struct {
-	conn        *websocket.Conn
+	user        *User
 	context     *gin.Context
 	content     []byte
-	messageType int
+	messageType int //消息类型 文本、图片、等等
 }
 
-//发送内容content
+//发送内容content 载体
 type TypeMessage struct {
-	Type interface{} `json:"type"`
+	Type interface{} `json:"type"` //内容分发类型：ping、init、message 等等
 	Data interface{} `json:"data"`
 }
 
@@ -102,13 +102,7 @@ func (s *ServerManager) NewChatServer(c *gin.Context) {
 	log.Print("客户端连接成功：" + conn.RemoteAddr().String())
 
 	if !ok {
-		content, _ := json.Marshal("用户id不存在，无法绑定")
-		s.ClientMessage <- &Message{
-			conn:        conn,
-			content:     content,
-			context:     c,
-			messageType: 1,
-		}
+		s.SendMessage(codes.SENDTYPE_CLIENT, s.Connlist[convert.ToString(UserId)], TypeMessage{"message", "用户id不存在，无法绑定"}, c, codes.MESSAGETYPE_TEXT)
 	}
 	//用户数据
 	UserInfo := s.UserService.Repository.GetUserByID(UserId.(uint))
@@ -119,6 +113,7 @@ func (s *ServerManager) NewChatServer(c *gin.Context) {
 		Avator:   "string",
 		To_id:    "string",
 		group_id: "string",
+		Failtime: 0,
 	}
 	s.register <- user
 
@@ -138,38 +133,38 @@ func (s *ServerManager) NewChatServer(c *gin.Context) {
 		json.Unmarshal(receive, &typeMsg)
 		if typeMsg.Type == nil || typeMsg.Data == nil {
 			log.Println("消息格式错误：", recevString)
-			content, _ := json.Marshal("消息格式错误")
-			s.ClientMessage <- &Message{
-				conn:        conn,
-				content:     content,
-				context:     c,
-				messageType: messageType,
-			}
+			s.SendMessage(codes.SENDTYPE_CLIENT, user, TypeMessage{"message", "消息格式错误"}, c, codes.MESSAGETYPE_TEXT)
 			continue
 		}
-
-		s.ServerMessage <- &Message{
-			conn:        conn,
-			content:     receive,
-			context:     c,
-			messageType: messageType,
-		}
+		s.SendMessage(codes.SENDTYPE_SERVER, user, typeMsg, c, messageType)
 	}
 }
 func (s *ServerManager) OnMessage() {
 	for {
 		select {
 		case message := <-s.ClientMessage:
-			log.Println("服务端:", string(message.content))
+			log.Println("发送客户端:", string(message.content))
 			s.Lock.Lock()
-			message.conn.WriteMessage(websocket.TextMessage, message.content)
+			err := message.user.Conn.WriteMessage(websocket.TextMessage, message.content)
+			if err != nil {
+				message.user.Failtime++
+				if message.user.Failtime >= 3 {
+					//如果发送失败次数超过指定次数则将该用户移除在线列表
+					delete(s.Connlist, message.user.Id)
+				} else {
+					s.Connlist[message.user.Id] = message.user
+				}
+			} else {
+				message.user.Failtime = 0
+				s.Connlist[message.user.Id] = message.user
+			}
 			s.Lock.Unlock()
 		case message := <-s.ServerMessage:
 			var typeMsg TypeMessage
 			json.Unmarshal(message.content, &typeMsg)
-			conn := message.conn
+			conn := message.user.Conn
 			msgType := typeMsg.Type.(string)
-			log.Println("客户端:", string(message.content))
+			log.Println("服务端接收:", string(message.content))
 
 			switch msgType {
 			//心跳
@@ -185,7 +180,9 @@ func (s *ServerManager) OnMessage() {
 		case user := <-s.register:
 			log.Println("注册用户:", user)
 			s.Len++
-			s.Connlist[strconv.Itoa(s.Len)] = user
+			s.Connlist[user.Id] = user
+			//注册成功向客户端发送个初始化信息
+
 		}
 
 	}
@@ -195,13 +192,27 @@ func (s *ServerManager) TestChatclient() {
 	for {
 		time.Sleep(time.Second * 25)
 		for key, otherKefu := range s.Connlist {
-			str, _ := json.Marshal("发送给：" + key + "；" + time.Now().Format("2006-01-02 15:04:05"))
-
-			err := otherKefu.Conn.WriteMessage(websocket.TextMessage, str)
-			if err == nil {
-
-			}
+			str := "发送给：" + key + "；" + time.Now().Format("2006-01-02 15:04:05")
+			s.SendMessage(codes.SENDTYPE_CLIENT, otherKefu, TypeMessage{"message", str}, &gin.Context{}, codes.MESSAGETYPE_TEXT)
 		}
-		log.Println("发送")
 	}
+}
+func (s *ServerManager) SendMessage(sendtype int, user *User, content TypeMessage, c *gin.Context, messageType int) {
+	contentstr, _ := json.Marshal(content)
+	if sendtype == codes.SENDTYPE_SERVER {
+		s.ServerMessage <- &Message{
+			user:        user,
+			content:     contentstr,
+			context:     c,
+			messageType: messageType,
+		}
+	} else {
+		s.ClientMessage <- &Message{
+			user:        user,
+			content:     contentstr,
+			context:     c,
+			messageType: messageType,
+		}
+	}
+
 }
