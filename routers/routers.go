@@ -66,6 +66,7 @@ func Configure(r *gin.Engine) {
 		&inject.Object{Value: &user},
 		&inject.Object{Value: &friend},
 		&inject.Object{Value: &ServerManager},
+		&inject.Object{Value: &ws_controller},
 	); err != nil {
 		log.Fatal("inject fatal: ", err)
 	}
@@ -167,10 +168,11 @@ func Configure(r *gin.Engine) {
 	ag.POST("/user/logout", user.Logout)
 	ag.POST("/user/info", user.Info)
 	ag.GET("/friend/friend_list", friend.FriendList)
+	ag.POST("/ws/send", ws_controller.SendMessage)
 
 	//websocket
 	ws := r.Group("/ws")
 	ws.Use(privilege.UserAuthMiddleware())
 	ws.GET("/chat", ServerManager.NewChatServer)
-	ws.GET("/bind", ws_controller.Bind)
+
 }

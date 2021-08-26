@@ -135,7 +135,13 @@ func (u *User) Info(c *gin.Context) {
 	}
 	friends := u.Fservice.GetFriendList(user_id.(uint))
 	var data = make(map[string]interface{})
+	subdata := make(map[string]interface{})
+	subdataarray := []map[string]interface{}{}
+	subdata["group_id"] = 1
+	subdata["group_name"] = "默认分组"
+	subdata["group_members"] = friends
+	subdataarray = append(subdataarray, subdata)
 	data["userinfo"] = user
-	data["friends"] = friends
+	data["friends"] = subdataarray
 	common.ResSuccess(c, data)
 }
