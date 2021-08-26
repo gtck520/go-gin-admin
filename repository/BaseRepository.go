@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"log"
-
 	"github.com/jinzhu/gorm"
 	"github.com/konger/ckgo/common/datasource"
 	"github.com/konger/ckgo/common/logger"
@@ -91,8 +89,6 @@ func (b *BaseRepository) Find(where interface{}, out interface{}, sel string, or
 	} else {
 		where1 = where
 	}
-
-	log.Println("条件1", where1)
 
 	db := b.Source.DB().Where(where1)
 	if sel != "" {
