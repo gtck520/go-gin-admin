@@ -5,6 +5,7 @@ import (
 	//"strconv"
 
 	"log"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/konger/ckgo/common/codes"
@@ -43,13 +44,26 @@ func (u *Ws) SendMessage(c *gin.Context) {
 		return
 	}
 	user := u.WsServer.Connlist[convert.ToString(sentdata.ToId)]
+	fromuser := u.WsServer.Connlist[convert.ToString(sentdata.FromId)]
 	//进行一系列消息存储操作
 	if user == nil {
 		//对方未上线 存储消息后返回成功
 		common.ResSuccess(c, sentdata)
 	} else {
 		log.Println("shiti:", user)
-		u.WsServer.SendMessage(codes.SENDTYPE_CLIENT, user, websocket.TypeMessage{"message", sentdata.Msg}, c, codes.MESSAGETYPE_TEXT)
+		sendmesssage := websocket.ClientMessage{
+			Name:     fromuser.Name,
+			Avator:   fromuser.Avator,
+			Id:       fromuser.Id,
+			Group:    "待定",
+			Time:     time.Now().Format("2006-01-02 15:00:00"),
+			ToId:     user.Id,
+			Content:  sentdata.Msg.(string),
+			City:     "",
+			ClientIp: "",
+			Refer:    "",
+		}
+		u.WsServer.SendMessage(codes.SENDTYPE_CLIENT, user, websocket.TypeMessage{"message", sendmesssage}, c, codes.MESSAGETYPE_TEXT)
 		common.ResSuccess(c, sentdata)
 	}
 }

@@ -54,17 +54,16 @@ type TypeMessage struct {
 
 //TypeMessage Data
 type ClientMessage struct {
-	Name      string `json:"name"`
-	Avator    string `json:"avator"`
-	Id        string `json:"id"`
-	VisitorId string `json:"visitor_id"`
-	Group     string `json:"group"`
-	Time      string `json:"time"`
-	ToId      string `json:"to_id"`
-	Content   string `json:"content"`
-	City      string `json:"city"`
-	ClientIp  string `json:"client_ip"`
-	Refer     string `json:"refer"`
+	Name     string `json:"name"`
+	Avator   string `json:"avator"`
+	Id       string `json:"id"`
+	Group    string `json:"group"`
+	Time     string `json:"time"`
+	ToId     string `json:"to_id"`
+	Content  string `json:"content"`
+	City     string `json:"city"`
+	ClientIp string `json:"client_ip"`
+	Refer    string `json:"refer"`
 }
 
 //客户端连接列表
