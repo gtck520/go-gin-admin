@@ -20,15 +20,21 @@ func (a *FriendRepository) AddFriend(friend *models.Friend) bool {
 	return true
 }
 
-//ExistUserByName
+//ExistUserByName where or 暂时不用
 func (a *FriendRepository) GetFriendList(where interface{}) (bool, interface{}) {
-	var friends []models.Friend
-	wherenew,ok:= where.(*Where)
-	if ok{
-		where =wherenew
+	// var friends []models.Friend
+	type result struct {
+		FriendId int64  `json:"friend_id"`
+		UserName string `json:"user_name"`
+		NickName string `json:"nick_name"`
 	}
-	if err := a.Base.Find(where, &friends, ""); err != nil {
+	res := []result{}
+	wherenew, ok := where.(*Where)
+	if ok {
+		where = wherenew
+	}
+	if err := a.Base.Join("go_com_friend", "left join go_com_user on go_com_friend.friend_id = go_com_user.id", where, &res, "go_com_friend.friend_id,go_com_user.user_name,go_com_user.nick_name"); err != nil {
 		a.Log.Errorf("获取好友列表异常", err)
 	}
-	return true, &friends
+	return true, &res
 }

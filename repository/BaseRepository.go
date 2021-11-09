@@ -94,7 +94,7 @@ func (b *BaseRepository) Find(where interface{}, out interface{}, sel string, or
 	if sel != "" {
 		db = db.Select(sel)
 	}
-	if value.Op == "or" {
+	if ok && value.Op == "or" {
 		db = db.Or(where2)
 	}
 	if len(orders) > 0 {
@@ -103,6 +103,37 @@ func (b *BaseRepository) Find(where interface{}, out interface{}, sel string, or
 		}
 	}
 	return db.Find(out).Error
+}
+
+// Join 根据条件返回数据
+func (b *BaseRepository) Join(tables string, joinquery string, where interface{}, out interface{}, sel string, orders ...string) error {
+	var where1 interface{}
+	var where2 interface{}
+	value, ok := where.(*Where)
+	if ok {
+		where1 = value.Wh1
+		where2 = value.Wh2
+	} else {
+		where1 = where
+	}
+	db := b.Source.DB().Where(where1)
+	db = db.Table(tables)
+	if sel != "" {
+		db = db.Select(sel)
+	}
+
+	if ok && value.Op == "or" {
+		db = db.Or(where2)
+	}
+	if len(orders) > 0 {
+		for _, order := range orders {
+			db = db.Order(order)
+		}
+	}
+	db = db.Joins(joinquery)
+	//rows, _ := db.Rows()
+	//return db.ScanRows(rows, out)
+	return db.Scan(out).Error
 }
 
 // GetPages 分页返回数据
