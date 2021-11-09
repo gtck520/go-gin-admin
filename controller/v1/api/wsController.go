@@ -63,7 +63,8 @@ func (u *Ws) SendMessage(c *gin.Context) {
 			ClientIp: "",
 			Refer:    "",
 		}
-		u.WsServer.SendMessage(codes.SENDTYPE_CLIENT, user, websocket.TypeMessage{"message", sendmesssage}, c, codes.MESSAGETYPE_TEXT)
+
+		u.WsServer.SendMessage(codes.SENDTYPE_CLIENT, user, websocket.TypeMessage{Type: "message", Data: sendmesssage}, c, codes.MESSAGETYPE_TEXT)
 		common.ResSuccess(c, sentdata)
 	}
 }
