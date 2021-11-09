@@ -1,6 +1,6 @@
 # go-gin-admin
 用于实践go gin框架搭建后台，以及项目实战<br>
-目前简单实现了 后台登录，前端登录，注册接口，以及websocket服务，简单点对点聊天
+目前简单实现了 后台登录，前端登录，注册接口，以及websocket服务，简单点对点聊天， 前端采用vue，vue不熟实在懒得写，就简单写了个控制台简单客户端<https://github.com/gtck520/ConsoleIM>
 # 目录结构
 ├── cmd          程序入口<br>
 ├── common   通用模块代码<br>
